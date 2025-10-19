@@ -69,3 +69,26 @@
 (define (profit ticket-price)
   (- (revenue ticket-price)
      (cost ticket-price)))
+
+;;; 2.5 Programs
+(require 2htdp/batch-io)
+
+(write-file "sample.dat" "212")
+(read-file "sample.dat")
+
+(define (C f)
+  (* 5/9 (- f 32)))
+
+(define (convert in out)
+  (write-file out
+              (string-append
+               (number->string (C (string->number (read-file in))))
+               "\n")))
+
+;;; Explain `(string-append ... "\n")`
+;;;
+;;; A: This will simply add a new line to `out`.
+
+(convert "sample.dat" 'stdout)
+(convert "sample.dat" "out.dat")
+(read-file "out.dat")
