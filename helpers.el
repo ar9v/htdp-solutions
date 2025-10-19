@@ -1,3 +1,4 @@
+;; These can be loaded with `M-x load-file` as needed
 (defun htdp/insert-evaluation-steps (form)
   "Insert `FORM' into the buffer as a comment, then a newline, and then a separator
 and keep prompting for more forms until the empty string is given.
