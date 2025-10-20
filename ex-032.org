@@ -1,0 +1,29 @@
+* Exercise 32
+#+BEGIN_QUOTE
+Most people no longer use desktop computers just to run applications but also employ
+cell phones, tablets, and their cars' information control screen. Soon people will use
+wearable computers in the form of intelligent glasses, clothes, and sports gear. In the
+somewhat more distant future, people may come with built-in bio computers that directly
+interact with body functions. Think of ten different forms of events that software
+applications will have to deal with.
+#+END_QUOTE
+
+** Cars
+1. Gear shifts (e.g. in a a sports car with automatic transmission)
+2. Passenger seatbelts being engaged or disengaged
+3. Hazard detection (e.g. in self-driving cars)
+
+** Sports gear
+4. Heartbeats in a digital watch.
+5. Steps in a digital watch.
+
+** Appliances
+6. An item running out in a smart fridge.
+7. An appliance finishing a cycle of sorts (e.g. a coffee maker that's done brewing a
+   batch, a smart washing machine signaling it has finished a cycle)
+
+** Misc
+8. Voice commands for smart assistants
+9. Generally, messages sent via TCP/IP to smart home implements managed through apps.
+10. Events triggered by sensors (e.g. people walking through a doorway triggering a
+    change in lighting, etc).
