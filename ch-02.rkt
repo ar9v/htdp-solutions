@@ -1,5 +1,8 @@
 #lang htdp/bsl
 
+(require 2htdp/image)
+(require 2htdp/universe)
+
 ;; 2.3
 (define (letter fst lst signature-name)
   (string-append
@@ -92,3 +95,59 @@
 (convert "sample.dat" 'stdout)
 (convert "sample.dat" "out.dat")
 (read-file "out.dat")
+
+(define (number->square s)
+  (square s "solid" "red"))
+
+(define (reset s ke) 100)
+
+;;; Stop! Explain what happens when you hit "return", count to 10, and finally press
+;;; "a".
+;;; (context:
+;;; (big-bang 100
+;;;           [to-draw number->square]
+;;;           [on-tick sub1]
+;;;           [stop-when zero?]
+;;;           [on-key reset])
+;;;
+;;; A: Per page 17 (in the Prologue), the clock tick 28 times per second, which means that
+;;;    by the time we've counted to 10 (assuming we're counting a number per second),
+;;;    the program has already processed 280 ticks.
+;;;
+;;;    So, `big-bang`  will have returned by then! We need to press a key before before
+;;;    within ~3.5 seconds. Then, the square will reinflate to full size and begin to
+;;;    shrink again.
+
+;;; (define cw1 (ke-h cw0 "a"))
+;;; (define cw2 (tock cw1))
+;;; (define cw3 (me-h cw2 "button-down" 90 100))
+;;;
+;;; Stop! How does `big-bang` display each of these three states?
+;;; A: By using `render` after each event has been processed.
+;;;
+;;;
+;;; Stop! Reformulate the first sequence of events as an expression.
+;;;
+;;; A: (me-h (tock (ke-h cw0 "a")) "button-down" 90 100)
+(define BACKGROUND (empty-scene 100 100))
+(define DOT (circle 3 "solid" "red"))
+
+(define (main y)
+  (big-bang y
+            [on-tick sub1]
+            [stop-when zero?]
+            [to-draw place-dot-at]
+            [on-key stop]))
+
+(define (place-dot-at y) (place-image DOT 50 y BACKGROUND))
+(define (stop y ke) 0)
+
+;;; Stop! Try now to understand how main reacts when you press a key. One way to find
+;;; out whether your conjecture is correct is to launch the `main` function on some
+;;; reasonable number (e.g. `(main 90)`)
+;;;
+;;; A: Main receives a key event, which in turn is passed on to our registered handler,
+;;;    `stop`. Stop returns 0, so `big-bang` uses that as the next state. Then, `stop-when`
+;;;    is evaluated as a part of the next cycle, which evaluates to `#true`. `render` is
+;;;    not called, so (1) `big-bang` returns 0 (the last state) and (2) the rendered image
+;;;    is that of a dot at the last state before it was set to 0 by `stop`.
