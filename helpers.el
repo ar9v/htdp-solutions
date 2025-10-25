@@ -98,3 +98,52 @@ DrRacket stepper goes through a program."
     (insert (format ";; %s" form))
     (newline)
     (--insert-evaluation-steps)))
+
+(defun htdp/generate-test (eq-fn)
+  (interactive "sEquality function: " racket-mode)
+
+  (goto-char (point-max))
+  (insert
+   (concat "(and"
+           "\n"
+           (string-join
+            (seq-map
+             (lambda (bsl-exprs)
+               (format "(%s %s)" eq-fn bsl-exprs))
+             (htdp/functional-examples->bsl-exprs
+              (htdp/functional-examples-in-region (region-beginning)
+                                                  (region-end))))
+            "\n")
+           ")"))
+
+  ;; TODO: make these last steps prettier/less hacky
+  (mark-sexp -1)
+  (indent-for-tab-command))
+
+(defun htdp/functional-example->bsl-expr (functional-example)
+  (format "(%s %s) %s"
+          (htdp/defined-function-in-region)
+          (car functional-example)
+          (cdr functional-example)))
+
+(defun htdp/functional-examples->bsl-exprs (functional-examples)
+  (seq-map
+   #'htdp/functional-example->bsl-expr
+   functional-examples))
+
+(defun htdp/functional-examples-in-region (start end)
+  (seq-filter
+   #'identity
+   (seq-map
+    (lambda (s)
+      (when (string-match "given: \\(.*\\), expect: \\(.*\\)" s)
+        (cons (match-string 1 s) (match-string 2 s))))
+    (string-lines (buffer-substring-no-properties start end)))))
+
+(defun htdp/defined-function-in-region ()
+  (let ((text-in-region (buffer-substring-no-properties (region-beginning) (region-end))))
+    (string-match
+     "(define (\\(.*\\)[\s,)].*)"       ; TODO: figure out a fancier way of doing this
+     text-in-region)
+
+    (match-string 1 text-in-region)))
