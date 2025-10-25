@@ -102,9 +102,8 @@ DrRacket stepper goes through a program."
 (defun htdp/generate-test (eq-fn)
   (interactive "sEquality function: " racket-mode)
 
-  (goto-char (point-max))
-  (insert
-   (concat "(and"
+  (let ((bsl-string
+         (concat "(and"
            "\n"
            (string-join
             (seq-map
@@ -114,11 +113,13 @@ DrRacket stepper goes through a program."
               (htdp/functional-examples-in-region (region-beginning)
                                                   (region-end))))
             "\n")
-           ")"))
+           ")")))
+    (goto-char (point-max))
+    (insert bsl-string)
 
-  ;; TODO: make these last steps prettier/less hacky
-  (mark-sexp -1)
-  (indent-for-tab-command))
+    ;; TODO: make these last steps prettier/less hacky
+    (mark-sexp -1)
+    (indent-for-tab-command)))
 
 (defun htdp/functional-example->bsl-expr (functional-example)
   (format "(%s %s) %s"
