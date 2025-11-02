@@ -49,6 +49,13 @@
               (htdp/exercise (1+ (htdp/exercise-number (htdp/latest-exercise)))
                              org))))
 
+(defun htdp/find-latest-exercise ()
+  (interactive)
+
+  (unless (htdp/in-htdp-dir?) (error "Not in HtDP project!"))
+
+  (find-file (htdp/exercise-filename (htdp/latest-exercise))))
+
 (defun htdp/find-exercise (n org)
   "HtDP-specific `find-file', which builds the filename. Given `N', it'll build a
 filename of the form `ex-%s.rkt', where `%s' will be padded with zeroes accordingly. This
@@ -75,6 +82,7 @@ It doesn't validate that n <= 528, however."
 
 (keymap-set project-prefix-map "h" 'htdp/find-exercise)
 (keymap-set project-prefix-map "n" 'htdp/find-next-exercise)
+(keymap-set project-prefix-map "l" 'htdp/find-latest-exercise)
 
 (defun htdp/insert-evaluation-steps (form)
   "Insert `FORM' into the buffer as a comment, then a newline, and then a separator
