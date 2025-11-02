@@ -107,21 +107,20 @@ DrRacket stepper goes through a program."
     (newline)
     (--insert-evaluation-steps)))
 
-(defun htdp/generate-test (eq-fn)
-  (interactive "sEquality function: " racket-mode)
+;;; TODO: use check-expect
+(defun htdp/generate-test ()
+  (interactive nil racket-mode)
 
   (let ((bsl-string
-         (concat "(and"
-           "\n"
-           (string-join
-            (seq-map
-             (lambda (bsl-exprs)
-               (format "(%s %s)" eq-fn bsl-exprs))
-             (htdp/functional-examples->bsl-exprs
-              (htdp/functional-examples-in-region (region-beginning)
-                                                  (region-end))))
-            "\n")
-           ")")))
+         (concat
+          (string-join
+           (seq-map
+            (lambda (bsl-exprs)
+              (format "(check-expect %s)" bsl-exprs))
+            (htdp/functional-examples->bsl-exprs
+             (htdp/functional-examples-in-region (region-beginning)
+                                                 (region-end))))
+           "\n"))))
     (goto-char (point-max))
     (insert bsl-string)
 
@@ -152,7 +151,7 @@ DrRacket stepper goes through a program."
 (defun htdp/defined-function-in-region ()
   (let ((text-in-region (buffer-substring-no-properties (region-beginning) (region-end))))
     (string-match
-     "(define (\\(.*\\)[\s,)].*)"       ; TODO: figure out a fancier way of doing this
+     "(define (\\([[:graph:]]+\\)"       ; TODO: figure out a fancier way of doing this
      text-in-region)
 
     (match-string 1 text-in-region)))
