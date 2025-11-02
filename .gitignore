@@ -1,6 +1,11 @@
 /images/
 
-sample.dat
-out.dat
+# A file to act as my DrRacket interactions area as I read through the book
+/scratch.rkt
 
-ex-031-*.txt
+# Filenames used to demonstrate the 2htdp/batch-io library.
+/sample.dat
+/out.dat
+
+# Support .txt files for Exercise 31.
+/ex-031-*.txt
