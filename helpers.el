@@ -155,3 +155,24 @@ DrRacket stepper goes through a program."
      text-in-region)
 
     (match-string 1 text-in-region)))
+
+(use-package autoinsert
+  :config
+  (auto-insert-mode 1)
+
+  (setf
+   (alist-get '(".*/htdp/ex-[[:digit:]]\\{3\\}\\.rkt" . "HtDP Exercise")
+              auto-insert-alist
+              nil
+              nil
+              #'equal)
+   '("Lang: "
+     "#lang htdp/" str \n
+     \n
+     (and (yes-or-no-p "Add requires?" )
+          '(nil
+            "(require 2htdp/image)"    \n
+            "(require 2htdp/universe)" \n
+            \n))
+     ";; "
+     )))
