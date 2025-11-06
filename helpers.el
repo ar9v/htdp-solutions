@@ -105,28 +105,22 @@ It doesn't validate that n <= 528, however."
 (keymap-set project-prefix-map "n" 'htdp/find-next-exercise)
 (keymap-set project-prefix-map "l" 'htdp/find-latest-exercise)
 
-(defun htdp/insert-evaluation-steps (form)
-  "Insert `FORM' into the buffer as a comment, then a newline, and then a separator
-and keep prompting for more forms until the empty string is given.
+(defun htdp/region-to-evaluation-steps (start end)
+  "Turn the code in region to a series of interactive steps.
 
-It's a convenience to insert evaluation steps for exercises that ask for how the
-DrRacket stepper goes through a program."
+That is, given highlighted forms FORM1, FORM2 ...
 
-  (interactive "sForm: " racket-mode)
+1. Comment them out
+2. Stick a comment with == between them"
 
-  (defun --insert-evaluation-steps ()
-    (let ((form (read-string "Form: ")))
-      (unless (string= form "")
-        (insert ";; ===")
-        (newline)
-        (insert (format ";; %s" form))
-        (newline)
-        (--insert-evaluation-steps))))
+  (interactive "r")
 
-  (unless (string= form "")
-    (insert (format ";; %s" form))
-    (newline)
-    (--insert-evaluation-steps)))
+  (goto-char start)
+
+  (while (progn (forward-sexp) (< (point) end)) (insert "\n=="))
+
+  (forward-sexp)
+  (comment-region start (point)))
 
 ;;; TODO: use check-expect
 (defun htdp/generate-test ()
