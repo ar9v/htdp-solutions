@@ -18,7 +18,7 @@
             "(require 2htdp/image)"    \n
             "(require 2htdp/universe)" \n
             \n))
-     ";; "
+     ";;; "
      )))
 
 ;;; Exercise: (Number . Filename)
