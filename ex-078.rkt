@@ -12,7 +12,7 @@
 ; interpretation:
 ; (make-3-letter-word first second third) represents a three letter word comprised of
 ; lowercase letters "a" through "z" or #false
-(define-struct 3-letter-word [first second third])
+(define-struct word [first second third])
 
 ; a Letter is one of
 ; -- a 1String, which is in the range of lowercase characters "a" through "z"
