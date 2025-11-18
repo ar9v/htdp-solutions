@@ -1,6 +1,6 @@
 #lang htdp/bsl
 
-;; What do you expect as the valu of this program?
+;; What do you expect as the value of this program?
 (define (string-insert s i)
   (string-append (substring s 0 i)
                  "_"
