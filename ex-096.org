@@ -1,0 +1,70 @@
+* Exercise 96
+
+#+BEGIN_QUOTE
+Sketch how each of the three game states could be rendered assuming a 200x200 canvasw
+#+END_QUOTE
+
+#+BEGIN_SRC racket
+(make-aim (make-posn 20 10) (make-tank 28 -3))
+#+END_SRC
+
+#+BEGIN_SRC
+
+  +-------------------+
+  | u                 |
+  |                   |
+  |                   |
+  |                   |
+  |                   |
+  |                   |
+  |                   |
+  |                   |
+  |  t                |
+  +-------------------+
+
+#+END_SRC
+
+#+BEGIN_SRC racket
+(make-fired (make-posn 20 10)
+            (make-tank 28 -3)
+            (make-posn 28 (- WORLD-HEIGHT TANK-HEIGHT)))
+#+END_SRC
+
+#+BEGIN_SRC
+
+  +-------------------+
+  | u                 |
+  |                   |
+  |                   |
+  |                   |
+  |                   |
+  |                   |
+  |                   |
+  |  ^                |
+  |  t                |
+  +-------------------+
+
+#+END_SRC
+
+
+#+BEGIN_SRC racket
+(make-fired (make-posn 20 100)
+            (make-tank 100 3)
+            (make-posn 22 103))
+#+END_SRC
+
+#+BEGIN_SRC
+
+  +-------------------+
+  |                   |
+  |                   |
+  |                   |
+  |                   |
+  | u                 |
+  | ^                 |
+  |                   |
+  |                   |
+  |         t         |
+  +-------------------+
+
+#+END_SRC
