@@ -107,7 +107,7 @@
          (render-gauge (vcat-happiness (world-vcat world))))
    (list (make-posn (vcham-x (world-vcham world)) Y-CHAM)
          (make-posn (vcat-x (world-vcat world)) Y-CAT)
-         (make-posn (* WORLD-WIDTH 1/3) GAUGE-HEIGHT) ; TODO: make these constant
+         (make-posn (* WORLD-WIDTH 1/3) GAUGE-HEIGHT)
          (make-posn (* WORLD-WIDTH 2/3) GAUGE-HEIGHT))
    BACKGROUND))
 
