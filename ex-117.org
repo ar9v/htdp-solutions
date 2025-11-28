@@ -1,0 +1,40 @@
+* Exercise 117
+
+Consider the following sentences
+
+#+BEGIN_SRC racket
+(3 + 4)
+number?
+(x)
+#+END_SRC
+
+Explain why they are syntactically illegal.
+
+* Sentence 1
+#+BEGIN_SRC racket
+(3 + 4)
+#+END_SRC
+
+A =program= can be a series =def-expr=, which in turn are either =def= or =expr=. This
+sentence is /not/ a =def=, because =3= is not =define=. However, =3= is also neither a
+=variable= nor a =primitive=, which makes this sentence not an =expr=. Since there are
+no rules in the grammar that can cover this sentence, this is illegal.
+
+* Sentence 2
+#+BEGIN_SRC racket
+number?
+#+END_SRC
+
+=number?= can only possibly be an =expr=, not a =def=, since it does not start with =(=.
+However, =number?= is a =primitive=. Since there are no rules in the grammar in which
+a =primitive= is not preceded by =(=, this sentence is illegal.
+
+* Sentence 3
+#+BEGIN_SRC racket
+(x)
+#+END_SRC
+
+An =expr= that starts with =(= can be a primitive application, a function/variable
+application or a =cond=. =x= is a variable, so we can use the rule
+=(variable expr expr ...)=. However, according to the rule, we must have at least one
+=expr= before a closing =)=. Since this sentence does not have that, it is illegal.
