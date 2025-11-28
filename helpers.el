@@ -107,6 +107,8 @@ It doesn't validate that n <= 528, however."
          (ex-filenames (seq-filter #'htdp/exercise-filename? all-files)))
     (seq-map #'htdp/exercise ex-filenames)))
 
+
+;;; htdp/region-to-evaluation-steps: Number Number -> ()
 (defun htdp/region-to-evaluation-steps (start end)
   "Turn the code in region to a series of interactive steps.
 
