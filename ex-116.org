@@ -1,0 +1,39 @@
+* Exercise 116
+
+Take a look at the following sentences:
+
+#+BEGIN_SRC racket
+x
+(= y z)
+(= (= y z) 0)
+#+END_SRC
+
+Explain why they are syntactically legal expressions
+
+** Sentence 1
+#+BEGIN_SRC racket
+x
+#+END_SRC
+
+A =program= is many =def-expr= or none. A =def-expr= can be an =expr=. An =expr= can be
+a =variable=. =x= is a =variable=, and is therefore a syntactically legal expression.
+
+** Sentence 2
+#+BEGIN_SRC racket
+(= y z)
+#+END_SRC
+
+A =program= is many =def-expr= or none. A =def-expr= can be an =expr=. An =expr= can be
+a =primitive= application, i.e. =(= followed by a =primitive= (in this case ~=~), at
+least one =expr=, and then a =)=. =y= and =z= are both =expr= following the logic for
+Sentence 1. So Sentence 2 is a syntactically legal expression.
+
+** Sentence 3
+#+BEGIN_SRC racket
+(= (= y z))
+#+END_SRC
+
+We established in Sentence 2 that ~(= y z)~ is a valid expression. We also established
+that a primitive application is =(= followed by a =primitive=, at least one =expr=, and a
+closing =)=. Since ~(= (= y z))~ follows that pattern, it is a syntactically legal
+expression.
