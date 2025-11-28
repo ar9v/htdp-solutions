@@ -1,5 +1,3 @@
-;; These can be loaded with `M-x load-file` as needed
-
 (use-package autoinsert
   :config
   (auto-insert-mode 1)
