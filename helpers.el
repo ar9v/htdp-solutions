@@ -84,7 +84,6 @@ There are 528 exercises in the book, so this assumes we'll pad up to 2 spaces.
 It doesn't validate that n <= 528, however."
 
   (interactive "nExercise number: \nP")
-  (require 'f)
 
   (let ((maybe-exercise-filename (htdp/exercise-filename-for n)))
     (find-file (or maybe-exercise-filename
