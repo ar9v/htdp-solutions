@@ -126,55 +126,6 @@ That is, given highlighted forms FORM1, FORM2 ...
   (forward-sexp)
   (comment-region start (point)))
 
-;;; TODO: use check-expect
-(defun htdp/generate-test ()
-  (interactive nil racket-mode)
-
-  (let ((bsl-string
-         (concat
-          (string-join
-           (seq-map
-            (lambda (bsl-exprs)
-              (format "(check-expect %s)" bsl-exprs))
-            (htdp/functional-examples->bsl-exprs
-             (htdp/functional-examples-in-region (region-beginning)
-                                                 (region-end))))
-           "\n"))))
-    (goto-char (point-max))
-    (insert bsl-string)
-
-    ;; TODO: make these last steps prettier/less hacky
-    (mark-sexp -1)
-    (indent-for-tab-command)))
-
-(defun htdp/functional-example->bsl-expr (functional-example)
-  (format "(%s %s) %s"
-          (htdp/defined-function-in-region)
-          (car functional-example)
-          (cdr functional-example)))
-
-(defun htdp/functional-examples->bsl-exprs (functional-examples)
-  (seq-map
-   #'htdp/functional-example->bsl-expr
-   functional-examples))
-
-(defun htdp/functional-examples-in-region (start end)
-  (seq-filter
-   #'identity
-   (seq-map
-    (lambda (s)
-      (when (string-match "given: \\(.*\\), expect: \\(.*\\)" s)
-        (cons (match-string 1 s) (match-string 2 s))))
-    (string-lines (buffer-substring-no-properties start end)))))
-
-(defun htdp/defined-function-in-region ()
-  (let ((text-in-region (buffer-substring-no-properties (region-beginning) (region-end))))
-    (string-match
-     "(define (\\([[:graph:]]+\\)"       ; TODO: figure out a fancier way of doing this
-     text-in-region)
-
-    (match-string 1 text-in-region)))
-
 
 (keymap-set project-prefix-map "h" 'htdp/find-exercise)
 (keymap-set project-prefix-map "n" 'htdp/find-next-exercise)
