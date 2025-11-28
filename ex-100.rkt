@@ -105,7 +105,8 @@
             [to-draw si-render]
             [on-tick si-move CLOCK-RATE]
             [on-key si-control]
-            [stop-when si-game-over? si-render-final]))
+            [stop-when si-game-over? si-render-final]
+            [check-with sigs?]))
 
 ; si-render: SIGS -> Image
 ; adds TANK, UFO, and possibly MISSILE to the BACKGROUND scene
@@ -344,3 +345,11 @@
          [else
           (text "You Win!" FONT-SIZE GAME-WON-FONT-COLOR)])
    (si-render s)))
+
+; sigs?: Any -> Boolean
+; Determines whether `v` is a sigs according to our data definition
+;
+; (In a revised version, SIGS is a structure, but `define-struct` defines a predicate;
+; which is why I chose this interpretation for this exercise)
+(define (sigs? v)
+  (or (aim? v) (fired? v)))

@@ -109,7 +109,8 @@
    [to-draw render]
    [on-tick update-animal CLOCK-TICK-RATE]
    [on-key handle-key]
-   [stop-when unhappiest? render]))
+   [stop-when unhappiest? render]
+   [check-with vanimal?]))
 
 ; render: VAnimal -> Image
 ; Places VAnimal `a` in World at its `x` in a BACKGROUND with a GAUGE that reflects its
@@ -264,3 +265,8 @@
   (<= (cond [(vcat? a) (vcat-happiness a)]
             [(vcham? a) (vcham-happiness a)])
       0))
+
+; vanimal?: Any -> Boolean
+; Determines whether `v` is a VAnimal
+(define (vanimal? v)
+  (or (vcat? v) (vcham? v)))
