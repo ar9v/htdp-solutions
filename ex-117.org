@@ -10,7 +10,7 @@ number?
 
 Explain why they are syntactically illegal.
 
-* Sentence 1
+** Sentence 1
 #+BEGIN_SRC racket
 (3 + 4)
 #+END_SRC
@@ -20,7 +20,7 @@ sentence is /not/ a =def=, because =3= is not =define=. However, =3= is also nei
 =variable= nor a =primitive=, which makes this sentence not an =expr=. Since there are
 no rules in the grammar that can cover this sentence, this is illegal.
 
-* Sentence 2
+** Sentence 2
 #+BEGIN_SRC racket
 number?
 #+END_SRC
@@ -29,7 +29,7 @@ number?
 However, =number?= is a =primitive=. Since there are no rules in the grammar in which
 a =primitive= is not preceded by =(=, this sentence is illegal.
 
-* Sentence 3
+** Sentence 3
 #+BEGIN_SRC racket
 (x)
 #+END_SRC
