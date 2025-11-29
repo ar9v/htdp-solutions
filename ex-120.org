@@ -1,0 +1,34 @@
+* Exercise 120
+
+Discriminate the legal from the illegal sentences:
+
+#+BEGIN_SRC racket
+(x)
+(+ 1 (not x))
+(+ 1 2 3)
+#+END_SRC
+
+
+** Sentence 1
+#+BEGIN_SRC racket
+(x)
+#+END_SRC
+
+This is illegal. It's an incomplete variable application.
+
+** Sentence 2
+#+BEGIN_SRC racket
+(+ 1 (not x))
+#+END_SRC
+
+This is a legal =expr=.
+
+- =(not x)= Is a legal primitive application (=(primitive expr expr ...)=)
+- =(+ 1 (not x))= Is a legal primitive application itself
+
+** Sentence 3
+#+BEGIN_SRC racket
+(+ 1 2 3)
+#+END_SRC
+
+This is a legal =expr=, particularly a single primitive application.
