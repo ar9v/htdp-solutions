@@ -1,0 +1,29 @@
+* Exercise 119
+
+Consider the following sentences:
+
+#+BEGIN_SRC racket
+(define (f "x") x)
+(define (f x y z) (x))
+#+END_SRC
+
+Explain why these are syntactically illegal.
+
+** Sentence 1
+#+BEGIN_SRC racket
+(define (f "x") x)
+#+END_SRC
+
+A =def= has the form =(define (variable variable variable ...) expr)=. While the first part up until
+=f= conforms to the rule, ="x"= is not a =variable=, but a =value=, making the sentence
+illegal.
+
+** Sentence 2
+#+BEGIN_SRC racket
+(define (f x y z) (x))
+#+END_SRC
+
+In this case =expr= can either be a primitive or a variable application. It is not the
+former, since =x= is not a primitive. But it also doesn't conform to the latter, since
+a variable application has the form =(variable expr expr ...)=, meaning, it has at least one
+=expr= after the variable. Therefore, the sentence is illegal.
