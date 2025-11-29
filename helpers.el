@@ -1,3 +1,5 @@
+(require 'racket-mode)
+
 (defconst HTDP-DIR (file-name-directory load-file-name)
   "The directory where the HtDP Solutions repo has been cloned and lives in this system.")
 
@@ -150,3 +152,49 @@ That is, given highlighted forms FORM1, FORM2 ...
             "(require 2htdp/universe)" \n
             \n))
      ";;; ")))
+
+(define-skeleton htdp/skeleton/define-fn
+  "A `define' function form."
+  nil
+  "(define " "(" (htdp/skeleton-sigil) _ ")" \n
+  (htdp/skeleton-sigil) ")")
+
+(define-skeleton htdp/skeleton/cond
+  "A `cond' form."
+  nil
+  "(cond "
+  (let ((branches (read-number "# of branches: ")))
+    `(,(make-list branches (htdp/skeleton-sigil))
+      > "[" str _ "]\n"))
+
+  ;; Hacky, but remove the last newline.
+  -1 ")")
+
+(define-skeleton htdp/skeleton/if
+  "An `if' form."
+  nil
+  "(if " (htdp/skeleton-sigil) _ \n
+  (htdp/skeleton-sigil) \n
+  (htdp/skeleton-sigil) ")")
+
+(define-skeleton htdp/skeleton/bb
+  "A `big-bang' form."
+  nil
+  "(big-bang $_" _ \n
+  "[to-draw $_]" \n
+  "[on-tick $_]" \n
+  "[on-key $_]" \n
+  "[stop-when $_]" ")")
+
+
+;;; My init.el defines SKELETON-SIGIL, and I use a couple of functions to jump to the
+;;; next/previous sigil. Use this at your convenience (-:
+(defun htdp/skeleton-sigil ()
+  "Return SKELETON-SIGIL if it exists, or a fallback if not"
+
+  (or SKELETON-SIGIL "\"_\""))
+
+(keymap-set racket-mode-map "C-c C-i C-s d" 'htdp/skeleton/define-fn)
+(keymap-set racket-mode-map "C-c C-i C-s c" 'htdp/skeleton/cond)
+(keymap-set racket-mode-map "C-c C-i C-s i" 'htdp/skeleton/if)
+(keymap-set racket-mode-map "C-c C-i C-s b" 'htdp/skeleton/bb)
