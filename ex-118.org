@@ -1,0 +1,42 @@
+* Exercise 118
+
+Take a look at the following sentences:
+
+#+BEGIN_SRC racket
+(define (f x) x)
+(define (f x) y)
+(define (f x y) 3)
+#+END_SRC
+
+Explain why they are syntactically legal definitions
+
+** Sentence 1
+#+BEGIN_SRC racket
+(define (f x) x)
+#+END_SRC
+
+A =program= element is either a =def= or an =expr=. A =def= has the form
+=(define (variable variable variable ...) expr)=.
+
+- This sentence starts with =(define=
+- Then, it has =(= followed by at least two =variable=, =f= and =x=
+- Lastly, it has =x=, which is a =variable= (and type of =expr=) and closes with =)=
+
+Therefore, this is a legal definition.
+
+** Sentence 2
+#+BEGIN_SRC racket
+(define (f x) y)
+#+END_SRC
+
+This follows the same argument as Sentence 1, only instead of having =x= as an =expr=, we
+have =y=. This is syntactically valid. There is no syntactic requirement for a definition
+to use its parameter in =expr=.
+
+** Sentence 3
+#+BEGIN_SRC racket
+(define (f x y) 3)
+#+END_SRC
+
+This follows the same argument as Sentence 1, only instead of having =x= as an =expr=, we
+have =3=.
