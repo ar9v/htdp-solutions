@@ -8,8 +8,8 @@
 ;;; where XXX are digits.
 
 ;;; htdp/exercise-filename?: Any -> Boolean
-;;; Determines whether `any` is an ExFilename
 (defun htdp/exercise-filename? (any)
+  "Determines whether any is an ExFilename"
   (and (stringp any) (string-match "ex-[[:digit:]]\\{3\\}.[rkt\\|org]" any)))
 
 
@@ -31,15 +31,16 @@
 
 
 ;;; htdp/exercise-filename->number: ExerciseFilename -> Number
-;;; Given a filename of form `ex-XXX.rkt`, strips out the XXX and parses it into a number.
 (defun htdp/exercise-filename->number (exercise-filename)
+  "Given a filename of form `ex-XXX.rkt`, strips out the XXX and parses it into a number."
   (string-to-number (elt (string-split exercise-filename "[-,.]")
                          1)))
 
 ;;; htdp/number->exercise-filename: Number -> ExerciseFilename
-;;; Turns a number `n` into a string of format `ex-XXX.rkt`; the number is padded w/ 0 if it
-;;; has less than 3 digits.
 (defun htdp/number->exercise-filename (n &optional org)
+  "Turns a number `n` into a string of format `ex-XXX.rkt`.
+
+The number is padded w/ 0 if it has less than 3 digits."
   (format "ex-%s.%s"
           (string-pad (number-to-string n) 3 ?0 t)
           (if org "org" "rkt")))
