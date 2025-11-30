@@ -1,0 +1,28 @@
+* Exercise 126
+
+Identify the =value=s among the following expressions, assuming the definitions area
+contains these structure type definitions
+
+#+BEGIN_SRC racket
+(define-struct point [x y z])
+(define-struct none [])
+#+END_SRC
+
+
+1. =(make-point 1 2 3)=
+   This is a =make-point= structure value, itself made up of three values, =1=, =2=, and =3=
+2. =(make-point (make-point 1 2 3) 4 5)=.
+   This is a =make-point= structure value, itself made up of three values: another
+   =make-point= value with values =1=, =2=, and =3=, =4=, and =5=.
+3. =(make-point (+ 1 2) 3 4)=
+   This is a =make-point= structure value, made up of values =3=, =3=, and =4=.
+4. =(make-none)=
+   This is a structure value, =make-none=.
+5. =(make-point (point-x (make-point 1 2 3)) 4 5)=
+   This is a =make-point= structure value, made up of values =1=, =4=, and =5=. To get the
+   first value, we call =point-x= on another =make-point= structure value, itself conformed
+   of values =1=, =2=, and =3=.
+
+All of these expressions are values. Remember that the beta rule establishes that a
+program tries to reduce an expression to a value. All of these are legal, and can be
+dropped into the interactions area and run, which shows they produce values.
