@@ -111,22 +111,26 @@ It doesn't validate that n <= 528, however."
 
 
 ;;; htdp/region-to-evaluation-steps: Number Number -> ()
-(defun htdp/region-to-evaluation-steps (start end)
-  "Turn the code in region to a series of interactive steps.
+(defun htdp/paragraph-to-evaluation-steps ()
+  "Turn the code in the paragraph starting from POINT to a series of interactive steps.
 
-That is, given highlighted forms FORM1, FORM2 ...
+That is, given a series of forms FORM1, FORM2 ... up to an empty line
 
 1. Comment them out
 2. Stick a comment with == between them"
 
-  (interactive "r")
+  (interactive)
 
-  (goto-char start)
+  (let ((start (point)))
+    (while (< (save-excursion (forward-sexp) (point))
+              (save-excursion (search-forward-regexp "^$" nil t)))
+      (forward-sexp)
+      (insert "\n=="))
 
-  (while (progn (forward-sexp) (< (point) end)) (insert "\n=="))
+    (comment-region start (point))
 
-  (forward-sexp)
-  (comment-region start (point)))
+    ;; Hacky, but kill the last "==" comment
+    (kill-whole-line)))
 
 
 (keymap-set project-prefix-map "h" 'htdp/find-exercise)
