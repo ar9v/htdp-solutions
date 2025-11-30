@@ -1,0 +1,12 @@
+* Exercise 125
+
+Discriminate the legal from the illegal sentences:
+
+#+BEGIN_SRC racket
+(define-struct oops [])
+(define-struct child [parents dob date])
+(define-struct (child person) [dob date])
+#+END_SRC
+
+** Answer
+Only the third sentence is illegal; =(child person)= is not a =name=.
