@@ -1,0 +1,20 @@
+* Exercise 127
+
+Suppose the program contains
+
+#+begin_src racket
+(define-struct ball [x y speed-x speed-y])
+#+end_src
+
+Predict the results of evaluating the following expressions:
+
+1. =(number? (make-ball 1 2 3 4))=
+   Returns =#false=
+2. =(ball-speed-y (make-ball (+ 1 2) (+ 3 3) 2 3))=
+   Returns =3=
+3. =(ball-y (make-ball (+ 1 2) (+ 3 3) 2 3))=
+   Returns =6=
+4. =(ball-x (make-posn 1 2))=
+   This errors. =ball-x= only works on values that are =make-ball=.
+5. =(ball-speed-y 5)=
+   This errors. =ball-speed-y= only works on values that are =make-ball=.
