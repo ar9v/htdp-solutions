@@ -184,11 +184,11 @@ That is, given a series of forms FORM1, FORM2 ... up to an empty line
 (define-skeleton htdp/skeleton/bb
   "A `big-bang' form."
   nil
-  "(big-bang $_" _ \n
-  "[to-draw $_]" \n
-  "[on-tick $_]" \n
-  "[on-key $_]" \n
-  "[stop-when $_]" ")")
+  "(big-bang " (htdp/skeleton-sigil) _ \n
+  "[to-draw " (htdp/skeleton-sigil) "]" \n
+  "[on-tick " (htdp/skeleton-sigil) "]" \n
+  "[on-key " (htdp/skeleton-sigil) "]" \n
+  "[stop-when " (htdp/skeleton-sigil) "]" ")")
 
 
 ;;; My init.el defines SKELETON-SIGIL, and I use a couple of functions to jump to the
