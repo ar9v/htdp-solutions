@@ -190,6 +190,12 @@ That is, given a series of forms FORM1, FORM2 ... up to an empty line
   "[on-key " (htdp/skeleton-sigil) "]" \n
   "[stop-when " (htdp/skeleton-sigil) "]" ")")
 
+(define-skeleton htdp/skeleton/ce
+  "A `check-expect` form."
+  nil
+  "(check-expect " \n
+  (htdp/skeleton-sigil) _ \n
+  (htdp/skeleton-sigil) ")")
 
 ;;; My init.el defines SKELETON-SIGIL, and I use a couple of functions to jump to the
 ;;; next/previous sigil. Use this at your convenience (-:
@@ -202,3 +208,4 @@ That is, given a series of forms FORM1, FORM2 ... up to an empty line
 (keymap-set racket-mode-map "C-c C-i C-s c" 'htdp/skeleton/cond)
 (keymap-set racket-mode-map "C-c C-i C-s i" 'htdp/skeleton/if)
 (keymap-set racket-mode-map "C-c C-i C-s b" 'htdp/skeleton/bb)
+(keymap-set racket-mode-map "C-c C-i C-s x" 'htdp/skeleton/ce)
