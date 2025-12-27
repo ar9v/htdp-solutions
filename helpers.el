@@ -202,6 +202,11 @@ That is, given a series of forms FORM1, FORM2 ... up to an empty line
   nil
   "(define-struct " (htdp/skeleton-sigil) _ " " "[" (htdp/skeleton-sigil) "])")
 
+(define-skeleton htdp/skeleton/req
+  "A `require' form"
+  nil
+  "(require " (htdp/skeleton-sigil) _ ")")
+
 ;;; My init.el defines SKELETON-SIGIL, and I use a couple of functions to jump to the
 ;;; next/previous sigil. Use this at your convenience (-:
 (defun htdp/skeleton-sigil ()
@@ -215,3 +220,4 @@ That is, given a series of forms FORM1, FORM2 ... up to an empty line
 (keymap-set racket-mode-map "C-c C-i C-s b" 'htdp/skeleton/bb)
 (keymap-set racket-mode-map "C-c C-i C-s x" 'htdp/skeleton/ce)
 (keymap-set racket-mode-map "C-c C-i C-s s" 'htdp/skeleton/struct)
+(keymap-set racket-mode-map "C-c C-i C-s r" 'htdp/skeleton/req)
