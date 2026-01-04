@@ -93,7 +93,7 @@
 (define FOOD-RADIUS WORM-RADIUS)
 (define FOOD-DIAMETER (* 2 FOOD-RADIUS))
 (define WORM-EATING-DELTA (- (+ WORM-RADIUS FOOD-RADIUS) 1))
-(define WORLD-WIDTH (* WORM-DIAMETER 30))
+(define WORLD-WIDTH (* WORM-DIAMETER 20))
 (define WORLD-HEIGHT WORLD-WIDTH)
 (define X-CENTER (/ WORLD-WIDTH 2))
 (define Y-CENTER (/ WORLD-HEIGHT 2))
@@ -508,24 +508,36 @@
 ; expand-worm: Worm -> Worm
 ; Given `worm`, produce a new worm with that has an extra segment which respects `worm`'s
 ; direction
+(check-expect
+ (expand-worm (make-worm (list (make-posn 10 10)) LEFT))
+ (make-worm (list (make-posn 10 10) (make-posn (- 10 WORM-DIAMETER) 10)) LEFT))
+(check-expect
+ (expand-worm (make-worm (list (make-posn 10 10)) RIGHT))
+ (make-worm (list (make-posn 10 10) (make-posn (+ 10 WORM-DIAMETER) 10)) RIGHT))
+(check-expect
+ (expand-worm (make-worm (list (make-posn 10 10)) UP))
+ (make-worm (list (make-posn 10 10) (make-posn 10 (- WORM-DIAMETER 10))) UP))
+(check-expect
+ (expand-worm (make-worm (list (make-posn 10 10)) DOWN))
+ (make-worm (list (make-posn 10 10) (make-posn 10 (+ WORM-DIAMETER 10))) DOWN))
 (define (expand-worm w)
   (make-worm
    (cond [(equal? (worm-direction w) LEFT)
-          (append (list (make-posn (+ (posn-x (worm-posns-head w)) WORM-DIAMETER)
-                                   (posn-y (worm-posns-head w))))
-                (worm-posns w))]
+          (append (worm-posns w)
+                  (list (make-posn (- (posn-x (worm-posns-head w)) WORM-DIAMETER)
+                                   (posn-y (worm-posns-head w)))))]
          [(equal? (worm-direction w) RIGHT)
-          (append (list (make-posn (- (posn-x (worm-posns-head w)) WORM-DIAMETER)
-                                   (posn-y (worm-posns-head w))))
-                (worm-posns w))]
+          (append (worm-posns w)
+                  (list (make-posn (+ (posn-x (worm-posns-head w)) WORM-DIAMETER)
+                                   (posn-y (worm-posns-head w)))))]
          [(equal? (worm-direction w) UP)
-          (append (list (make-posn (posn-x (worm-posns-head w))
-                                 (+ (posn-y (worm-posns-head w)) WORM-DIAMETER)))
-                (worm-posns w))]
+          (append (worm-posns w)
+                  (list (make-posn (posn-x (worm-posns-head w))
+                                   (- (posn-y (worm-posns-head w)) WORM-DIAMETER))))]
          [(equal? (worm-direction w) DOWN)
-          (append (list (make-posn (posn-x (worm-posns-head w))
-                                   (- (posn-y (worm-posns-head w)) WORM-DIAMETER)))
-                (worm-posns w))])
+          (append (worm-posns w)
+                  (list (make-posn (posn-x (worm-posns-head w))
+                                   (+ (posn-y (worm-posns-head w)) WORM-DIAMETER))))])
    (worm-direction w)))
 
 ; posn-sub: Posn Posn -> Posn
