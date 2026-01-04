@@ -511,20 +511,20 @@
 (define (expand-worm w)
   (make-worm
    (cond [(equal? (worm-direction w) LEFT)
-          (cons (make-posn (+ (posn-x (first (worm-posns w))) WORM-DIAMETER)
-                           (posn-y (first (worm-posns w))))
+          (append (list (make-posn (+ (posn-x (worm-posns-head w)) WORM-DIAMETER)
+                                   (posn-y (worm-posns-head w))))
                 (worm-posns w))]
          [(equal? (worm-direction w) RIGHT)
-          (cons (make-posn (- (posn-x (first (worm-posns w))) WORM-DIAMETER)
-                           (posn-y (first (worm-posns w))))
+          (append (list (make-posn (- (posn-x (worm-posns-head w)) WORM-DIAMETER)
+                                   (posn-y (worm-posns-head w))))
                 (worm-posns w))]
          [(equal? (worm-direction w) UP)
-          (cons (make-posn (posn-x (first (worm-posns w)))
-                           (+ (posn-y (first (worm-posns w))) WORM-DIAMETER))
+          (append (list (make-posn (posn-x (worm-posns-head w))
+                                 (+ (posn-y (worm-posns-head w)) WORM-DIAMETER)))
                 (worm-posns w))]
          [(equal? (worm-direction w) DOWN)
-          (cons (make-posn (posn-x (first (worm-posns w)))
-                           (- (posn-y (first (worm-posns w))) WORM-DIAMETER))
+          (append (list (make-posn (posn-x (worm-posns-head w))
+                                   (- (posn-y (worm-posns-head w)) WORM-DIAMETER)))
                 (worm-posns w))])
    (worm-direction w)))
 
@@ -591,8 +591,3 @@
 (define (distance p1 p2)
   (inexact->exact (sqrt (+ (sqr (- (posn-x p2) (posn-x p1)))
                            (sqr (- (posn-y p2) (posn-y p1)))))))
-
-
-;;; TODO:
-;;; -- try representing the worm head first, so we expand the worm using the interpretation
-;;;    of hint 1 (would also make the animation look nicer)
