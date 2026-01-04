@@ -120,12 +120,14 @@
  (render-game
   (make-game (make-worm (list (make-posn 10 10) (make-posn 10 20)) DOWN)
              (make-posn 50 50)))
- (render-food
-  (make-posn 50 50)
-  (render-worm (make-worm (list (make-posn 10 10) (make-posn 10 20)) DOWN))))
+ (render-worm
+  (make-worm (list (make-posn 10 10) (make-posn 10 20)) DOWN)
+  (render-food (make-posn 50 50)
+               CANVAS)))
 (define (render-game game)
-  (render-food (game-food game)
-               (render-worm (game-worm game))))
+  (render-worm (game-worm game)
+               (render-food (game-food game)
+                            CANVAS)))
 
 ; render-food: Posn Image -> Image
 ; Places FOOD in `food`'s coordinates on top of `img`
@@ -134,26 +136,26 @@
 (define (render-food food img)
   (place-image FOOD (posn-x food) (posn-y food) img))
 
-; render-worm: Worm -> Image
-; Places WORM in CANVAS
-(check-expect (render-worm (make-worm (list (make-posn 10 10) (make-posn 10 20)) LEFT))
+; render-worm: Worm Image -> Image
+; Places WORM in `img`
+(check-expect (render-worm (make-worm (list (make-posn 10 10) (make-posn 10 20)) LEFT) CANVAS)
               (place-image WORM
                            10 20
                            (place-image WORM
                                         10 10
                                         CANVAS)))
-(define (render-worm w)
-  (render-worm-tails (worm-posns w)))
+(define (render-worm w img)
+  (render-worm-tails (worm-posns w) img))
 
-; render-worm-tails: [Posns] -> Image
-; Renders a list of worm tails onto CANVAS
-(define (render-worm-tails posns)
-  (cond [(empty? posns) CANVAS]
+; render-worm-tails: [Posns] Image -> Image
+; Renders a list of worm tails onto img
+(define (render-worm-tails posns img)
+  (cond [(empty? posns) img]
         [(cons? posns)
          (place-image WORM
                       (posn-x (first posns))
                       (posn-y (first posns))
-                      (render-worm-tails (rest posns)))]))
+                      (render-worm-tails (rest posns) img))]))
 
 ; update-game: Game -> Game
 ; Moves the game's worm and checks if the worm has eaten the game's food
@@ -592,9 +594,5 @@
 
 
 ;;; TODO:
-;;; -- update key handler to also ignore opposite directions if head is still
-;;;    in the same axis as the rest of the body (a quick up-left while going right causes
-;;;    a game over, e.g.)
-;;; -- render the worm first, the food second (so the animation looks nicer)
 ;;; -- try representing the worm head first, so we expand the worm using the interpretation
 ;;;    of hint 1 (would also make the animation look nicer)
