@@ -103,14 +103,16 @@
 (define FOOD (circle FOOD-RADIUS "solid" "brown"))
 (define CANVAS (empty-scene WORLD-WIDTH WORLD-HEIGHT))
 
-; worm-main: Number -> Worm
-; Runs the Worm game. Takes in the clock rate.
+; worm-main: Number -> Number
+; Runs the Worm game. Takes in the clock rate, returns the final length of the worm.
 (define (worm-main rate)
-  (big-bang (make-game (create-worm INITIAL-POSN 2 RIGHT) (make-posn 50 50))
-            [to-draw render-game]
-            [on-tick update-game rate]
-            [on-key change-game-worm-direction]
-            [stop-when game-over? render-final-state]))
+  (length
+   (worm-posns
+    (game-worm (big-bang (make-game (create-worm INITIAL-POSN 2 RIGHT) (make-posn 50 50))
+                         [to-draw render-game]
+                         [on-tick update-game rate]
+                         [on-key change-game-worm-direction]
+                         [stop-when game-over? render-final-state])))))
 
 ; render-game: Game -> Image
 ; Render the game state in the CANVAS
