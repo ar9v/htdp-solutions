@@ -252,7 +252,10 @@
 ; Creates a new game state where the worm's direction has been updated. See
 ; `change-worm-direction`
 (define (change-game-worm-direction game ke)
-  (make-game (change-worm-direction (game-worm game) ke) (game-food game)))
+  (if (equal? (game-worm game) (change-worm-direction (game-worm game) ke))
+      game
+      (update-game
+       (make-game (change-worm-direction (game-worm game) ke) (game-food game)))))
 
 ; change-worm-direction: Worm KeyEvent -> Worm
 ; Changes `worm`'s direction depending on the arrow key pressed; ignores all other keys.
@@ -266,10 +269,10 @@
  (make-worm (list (make-posn 50 50)) LEFT))
 (check-expect
  (change-worm-direction (make-worm (list (make-posn 50 50)) LEFT) "up")
- (update-worm (make-worm (list (make-posn 50 50)) UP)))
+ (make-worm (list (make-posn 50 50)) UP))
 (check-expect
  (change-worm-direction (make-worm (list (make-posn 50 50)) LEFT) "down")
- (update-worm (make-worm (list (make-posn 50 50)) DOWN)))
+ (make-worm (list (make-posn 50 50)) DOWN))
 (check-expect
  (change-worm-direction (make-worm (list (make-posn 50 50)) DOWN) "up")
  (make-worm (list (make-posn 50 50)) DOWN))
@@ -290,7 +293,7 @@
           (or (equal? (worm-direction w) UP) (equal? (worm-direction w) DOWN))]
          [else #true])
    w
-   (update-worm (worm-up-direction w ke))))
+   (worm-up-direction w ke)))
 
 ; game-over?: Game -> Boolean
 ; Determines whether the Game's worm has run into a wall or itself
