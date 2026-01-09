@@ -13,6 +13,8 @@
 ;;;
 ;;; and above all, use your imagination.
 
+; Utilities
+
 ; beside/list: [Image] -> Image
 ; Like 2htdp/image's `beside`, but takes in a list
 (check-expect (beside/list '()) empty-image)
@@ -22,7 +24,18 @@
   (cond [(empty? imgs) empty-image]
         [(cons? imgs) (beside (first imgs) (beside/list (rest imgs)))]))
 
+; random-between: Number Number -> Number
+; Produces a random number lying between `a` and `b`
+(check-satisfied (random-between 3 7) between-3-and-7?)
+(define (random-between a b)
+  (+ a (random (- b a))))
 
+; between-3-and-7?: Number -> Boolean
+; For testing the above: checks whether a number is in [3, 7)
+(define (between-3-and-7? n)
+  (and (<= 3 n) (< n 7)))
+
+; Constants
 (define TANK-WIDTH 50)
 (define TANK-HEIGHT (* 1/3 TANK-WIDTH))
 (define CANNON-WIDTH (* 1/6 TANK-WIDTH))
@@ -30,6 +43,7 @@
 (define WHEEL-AMOUNT 5)
 (define WHEEL-RADIUS (/ TANK-WIDTH (* WHEEL-AMOUNT 2)))
 (define UFO-RADIUS (* 1/2 TANK-WIDTH))
+(define UFO-Y-DELTA 1)
 (define WORLD-WIDTH (* 10 TANK-WIDTH))
 (define WORLD-HEIGHT (* 15 TANK-WIDTH))
 
@@ -56,6 +70,8 @@
 
 (define BACKGROUND (empty-scene WORLD-WIDTH WORLD-HEIGHT))
 
+
+; Data Definitions
 (define-struct game [tank ufo])
 (define-struct tank [x dx])
 ; (make-tank Number Number)
@@ -66,16 +82,20 @@
 (define MAX-TANK-X (- WORLD-WIDTH (/ TANK-WIDTH 2) 1))
 (define starting-tank (make-tank (/ WORLD-WIDTH 2) 5))
 
-(define-struct ufo [x y])
-; (make-ufo Number Number)
+(define-struct ufo [x y cx cy])
+; (make-ufo Number Number Cooldown Cooldown)
 ;
 ; x coordinate: Center of UFO. In range [MIN-UFO-X, MAX-UFO-X]
 ; y coordinate: Center of UFO. In range [MIN-UFO-Y, MAX-UFO-Y]
+; cx: Cooldown for `x` coordinate generation. In range [0, MAX-CX]
+; cy: Cooldown for `y` coordinate generation. In range [0, MAX-CY]
 (define MIN-UFO-X (+ (/ (image-width UFO) 2) 1))
 (define MAX-UFO-X (- WORLD-WIDTH (/ (image-width UFO) 2) 1))
 (define MIN-UFO-Y (+ (/ (image-height UFO) 2) 1))
 (define MAX-UFO-Y (- WORLD-HEIGHT (/ (image-height UFO) 2) 1))
-(define starting-ufo (make-ufo (/ WORLD-WIDTH 2) MIN-UFO-Y))
+(define MAX-CX 24)
+(define MAX-CY 2)
+(define starting-ufo (make-ufo (/ WORLD-WIDTH 2) MIN-UFO-Y MAX-CX MAX-CY))
 
 (define game-start-state (make-game starting-tank starting-ufo))
 
@@ -123,9 +143,47 @@
 ; update-game: Game -> Game
 ; Updates the game state, moving its objects
 (check-expect (update-game game-start-state)
-              (game-up-tank game-start-state (update-tank (game-tank game-start-state))))
+              (game-up-ufo (game-up-tank game-start-state
+                                         (update-tank (game-tank game-start-state)))
+                           (update-ufo (game-ufo game-start-state))))
 (define (update-game g)
-  (game-up-tank g (update-tank (game-tank g))))
+  (game-up-ufo (game-up-tank g (update-tank (game-tank g)))
+               (update-ufo (game-ufo g))))
+
+; update-ufo: UFO -> UFO
+; Creates a new UFO in a random x and UFO-Y-DELTA units down if the cooldowns for each
+; coordinate have elapsed.
+(check-expect (update-ufo starting-ufo)
+              (make-ufo (ufo-x starting-ufo)
+                        (ufo-y starting-ufo)
+                        (sub1 (ufo-cx starting-ufo))
+                        (sub1 (ufo-cy starting-ufo))))
+(check-random (update-ufo (make-ufo MIN-UFO-X (/ MAX-UFO-Y 2) 0 0))
+              (make-ufo (random-between MIN-UFO-X MAX-UFO-X)
+                        (+ (/ MAX-UFO-Y 2) UFO-Y-DELTA)
+                        MAX-CX
+                        MAX-CY))
+(check-random (update-ufo (make-ufo MIN-UFO-X (/ MAX-UFO-Y 2) 0 1))
+              (make-ufo (random-between MIN-UFO-X MAX-UFO-X)
+                        (/ MAX-UFO-Y 2)
+                        MAX-CX
+                        0))
+(check-random (update-ufo (make-ufo MIN-UFO-X (/ MAX-UFO-Y 2) 1 0))
+              (make-ufo MIN-UFO-X
+                        (+ (/ MAX-UFO-Y 2) UFO-Y-DELTA)
+                        0
+                        MAX-CY))
+(check-random (update-ufo (make-ufo MIN-UFO-X MAX-UFO-Y 1 0))
+              (make-ufo MIN-UFO-X
+                        MAX-UFO-Y
+                        0
+                        MAX-CY))
+(define (update-ufo u)
+  (make-ufo
+   (if (zero? (ufo-cx u)) (random-between MIN-UFO-X MAX-UFO-X) (ufo-x u))
+   (if (zero? (ufo-cy u)) (min MAX-UFO-Y (+ (ufo-y u) UFO-Y-DELTA)) (ufo-y u))
+   (if (zero? (ufo-cx u)) MAX-CX (sub1 (ufo-cx u)))
+   (if (zero? (ufo-cy u)) MAX-CY (sub1 (ufo-cy u)))))
 
 ; update-tank: Tank -> Tank
 ; Creates a new tank where x is `t`'s x+dx, within the bounds of `x` (see struct definition)
@@ -154,6 +212,14 @@
              (and (key=? "right" ke) (not (tank-right? (game-tank g)))))
          (game-up-tank g (tank-change-dx (game-tank g)))]
         [else g]))
+
+; game-up-ufo: Game UFO -> Game
+; Creates a new Game state, with `ufo` as the new `game-ufo`
+(check-expect (game-up-ufo game-start-state (make-ufo MIN-UFO-X MAX-UFO-Y 0 0))
+              (make-game (game-tank game-start-state)
+                         (make-ufo MIN-UFO-X MAX-UFO-Y 0 0)))
+(define (game-up-ufo g u)
+  (make-game (game-tank g) u))
 
 ; game-up-tank: Game Tank -> Game
 ; Creates a new Game state, with `tank` as the new tank
