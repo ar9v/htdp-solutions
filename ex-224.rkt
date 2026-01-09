@@ -56,7 +56,7 @@
 
 (define BACKGROUND (empty-scene WORLD-WIDTH WORLD-HEIGHT))
 
-(define-struct game [tank])
+(define-struct game [tank ufo])
 (define-struct tank [x dx])
 ; (make-tank Number Number)
 ;
@@ -66,14 +66,18 @@
 (define MAX-TANK-X (- WORLD-WIDTH (/ TANK-WIDTH 2) 1))
 (define starting-tank (make-tank (/ WORLD-WIDTH 2) 5))
 
-(define-struct ufo [x])
-; (make-ufo Number)
+(define-struct ufo [x y])
+; (make-ufo Number Number)
 ;
-; x: Center of UFO. In range [MIN-UFO-X, MAX-UFO-X]
+; x coordinate: Center of UFO. In range [MIN-UFO-X, MAX-UFO-X]
+; y coordinate: Center of UFO. In range [MIN-UFO-Y, MAX-UFO-Y]
 (define MIN-UFO-X (+ (/ (image-width UFO) 2) 1))
 (define MAX-UFO-X (- WORLD-WIDTH (/ (image-width UFO) 2) 1))
+(define MIN-UFO-Y (+ (/ (image-height UFO) 2) 1))
+(define MAX-UFO-Y (- WORLD-HEIGHT (/ (image-height UFO) 2) 1))
+(define starting-ufo (make-ufo (/ WORLD-WIDTH 2) MIN-UFO-Y))
 
-(define game-start-state (make-game starting-tank))
+(define game-start-state (make-game starting-tank starting-ufo))
 
 ; space-invader: Game -> Game
 ; Runs the Space Invader game
@@ -88,9 +92,20 @@
 ; render-game: Game -> Image
 ; Renders the space invader game state
 (check-expect (render-game game-start-state)
-              (render-tank (game-tank game-start-state) BACKGROUND))
+              (render-ufo
+               (game-ufo game-start-state)
+               (render-tank (game-tank game-start-state) BACKGROUND)))
 (define (render-game g)
-  (render-tank (game-tank g) BACKGROUND))
+  (render-ufo (game-ufo g) (render-tank (game-tank g) BACKGROUND)))
+
+; render-ufo: UFO Image -> Image
+; Places UFO at `img`
+(check-expect (render-ufo starting-ufo BACKGROUND)
+              (place-image UFO (ufo-x starting-ufo) (ufo-y starting-ufo) BACKGROUND))
+(define (render-ufo u img)
+  (place-image UFO
+               (ufo-x u) (ufo-y u)
+               img))
 
 ; render-tank: Tank Image -> Image
 ; Places TANK at the bottom of `img`, at the coordinate of `t`
@@ -143,9 +158,9 @@
 ; game-up-tank: Game Tank -> Game
 ; Creates a new Game state, with `tank` as the new tank
 (check-expect (game-up-tank game-start-state (make-tank MIN-TANK-X 4))
-              (make-game (make-tank MIN-TANK-X 4)))
+              (make-game (make-tank MIN-TANK-X 4) (game-ufo game-start-state)))
 (define (game-up-tank g t)
-  (make-game t))
+  (make-game t (game-ufo g)))
 
 ; tank-change-dx: Tank -> Tank
 ; Flips the direction of `tank`
