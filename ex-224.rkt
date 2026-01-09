@@ -68,6 +68,11 @@
     (wedge UFO-RADIUS 180 "solid" UFO-GLASS-COLOR)
     (rotate 180 (wedge UFO-RADIUS 180 "solid" UFO-COLOR)))))
 
+(define MISSILE-COLOR "black")
+(define MISSILE-WIDTH (- CANNON-WIDTH 3))
+(define MISSILE-HEIGHT (- CANNON-HEIGHT 1))
+(define MISSILE (rectangle MISSILE-WIDTH MISSILE-HEIGHT "solid" MISSILE-COLOR))
+
 (define FONT-SIZE TANK-WIDTH)
 (define FONT-COLOR "black")
 (define GAME-OVER-TEXT (text "Game Over :-(" FONT-SIZE FONT-COLOR))
@@ -76,7 +81,7 @@
 
 
 ; Data Definitions
-(define-struct game [tank ufo])
+(define-struct game [tank ufo missiles])
 (define-struct tank [x dx])
 ; (make-tank Number Number)
 ;
@@ -91,8 +96,8 @@
 ;
 ; x coordinate: Center of UFO. In range [MIN-UFO-X, MAX-UFO-X]
 ; y coordinate: Center of UFO. In range [MIN-UFO-Y, MAX-UFO-Y]
-; cx: Cooldown for `x` coordinate generation. In range [0, MAX-CX]
-; cy: Cooldown for `y` coordinate generation. In range [0, MAX-CY]
+; cx: Cooldown for `x` coordinate generation. A number in range [0, MAX-CX]
+; cy: Cooldown for `y` coordinate generation. A number in range [0, MAX-CY]
 (define MIN-UFO-X (+ (/ (image-width UFO) 2) 1))
 (define MAX-UFO-X (- WORLD-WIDTH (/ (image-width UFO) 2) 1))
 (define MIN-UFO-Y (+ (/ (image-height UFO) 2) 1))
@@ -102,8 +107,18 @@
 (define starting-ufo (make-ufo (/ WORLD-WIDTH 2) MIN-UFO-Y MAX-CX MAX-CY))
 (define landed-ufo (make-ufo (- MAX-UFO-X 2) MAX-UFO-Y MAX-CX MAX-CY))
 
-(define game-start-state (make-game starting-tank starting-ufo))
-(define game-over-state (make-game starting-tank landed-ufo))
+(define-struct missiles [posns cool])
+; (make-missiles List<Posn> Cooldown)
+;
+; posns: A list of where the current fired missiles are in the world
+; cool: Cooldown for missile generation. A number in range [0, MAX-MISSILE-COOLDOWN]
+(define MAX-MISSILE-COOLDOWN 5)
+(define starting-missiles (make-missiles '() MAX-MISSILE-COOLDOWN))
+(define fired-missiles (make-missiles (list (make-posn 10 35) (make-posn 50 70))
+                                      MAX-MISSILE-COOLDOWN))
+
+(define game-start-state (make-game starting-tank starting-ufo starting-missiles))
+(define game-over-state (make-game starting-tank landed-ufo starting-missiles))
 
 ; space-invader: Game -> Game
 ; Runs the Space Invader game
@@ -117,9 +132,11 @@
 ; render-game: Game -> Image
 ; Renders the space invader game state
 (check-expect (render-game game-start-state)
-              (render-ufo
-               (game-ufo game-start-state)
-               (render-tank (game-tank game-start-state) BACKGROUND)))
+              (render-missiles
+               (game-missiles game-start-state)
+               (render-ufo
+                (game-ufo game-start-state)
+                (render-tank (game-tank game-start-state) BACKGROUND))))
 (define (render-game g)
   (render-ufo (game-ufo g) (render-tank (game-tank g) BACKGROUND)))
 
@@ -134,6 +151,25 @@
   (place-image GAME-OVER-TEXT
                (/ WORLD-WIDTH 2) (/ WORLD-HEIGHT 2)
                (render-game g)))
+
+; render-missiles: Missiles Image -> Image
+; Places missiles in `m` on `img`
+(check-expect (render-missiles fired-missiles BACKGROUND)
+              (place-image MISSILE
+                           (posn-x (first (missiles-posns fired-missiles)))
+                           (posn-y (first (missiles-posns fired-missiles)))
+                           (place-image MISSILE
+                                        (posn-x (second (missiles-posns fired-missiles)))
+                                        (posn-y (second (missiles-posns fired-missiles)))
+                                        BACKGROUND)))
+(define (render-missiles ms img)
+  (cond [(empty? (missiles-posns ms)) img]
+        [else (place-image MISSILE
+                           (posn-x (first (missiles-posns ms)))
+                           (posn-y (first (missiles-posns ms)))
+                           (render-missiles
+                            (missiles-up-posns ms (rest (missiles-posns ms)))
+                            img))]))
 
 ; render-ufo: UFO Image -> Image
 ; Places UFO at `img`
@@ -250,16 +286,19 @@
 ; Creates a new Game state, with `ufo` as the new `game-ufo`
 (check-expect (game-up-ufo game-start-state (make-ufo MIN-UFO-X MAX-UFO-Y 0 0))
               (make-game (game-tank game-start-state)
-                         (make-ufo MIN-UFO-X MAX-UFO-Y 0 0)))
+                         (make-ufo MIN-UFO-X MAX-UFO-Y 0 0)
+                         (game-missiles game-start-state)))
 (define (game-up-ufo g u)
-  (make-game (game-tank g) u))
+  (make-game (game-tank g) u (game-missiles g)))
 
 ; game-up-tank: Game Tank -> Game
 ; Creates a new Game state, with `tank` as the new tank
 (check-expect (game-up-tank game-start-state (make-tank MIN-TANK-X 4))
-              (make-game (make-tank MIN-TANK-X 4) (game-ufo game-start-state)))
+              (make-game (make-tank MIN-TANK-X 4)
+                         (game-ufo game-start-state)
+                         (game-missiles game-start-state)))
 (define (game-up-tank g t)
-  (make-game t (game-ufo g)))
+  (make-game t (game-ufo g) (game-missiles g)))
 
 ; tank-change-dx: Tank -> Tank
 ; Flips the direction of `tank`
@@ -281,3 +320,10 @@
 (check-expect (tank-right? (make-tank MAX-TANK-X -3)) #false)
 (define (tank-right? t)
   (positive? (tank-dx t)))
+
+; missiles-up-posns: Missiles List<Posns> -> Missiles
+; Creates a new Missiles instance with the passed in `posns`
+(check-expect (missiles-up-posns fired-missiles '())
+              (make-missiles '() (missiles-cool fired-missiles)))
+(define (missiles-up-posns ms ps)
+  (make-missiles ps (missiles-cool ms)))
