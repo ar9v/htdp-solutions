@@ -43,7 +43,7 @@
 (define WHEEL-AMOUNT 5)
 (define WHEEL-RADIUS (/ TANK-WIDTH (* WHEEL-AMOUNT 2)))
 (define UFO-RADIUS (* 1/2 TANK-WIDTH))
-(define UFO-Y-DELTA 1)
+(define UFO-Y-DELTA 10)
 (define WORLD-WIDTH (* 10 TANK-WIDTH))
 (define WORLD-HEIGHT (* 15 TANK-WIDTH))
 
@@ -68,6 +68,10 @@
     (wedge UFO-RADIUS 180 "solid" UFO-GLASS-COLOR)
     (rotate 180 (wedge UFO-RADIUS 180 "solid" UFO-COLOR)))))
 
+(define FONT-SIZE TANK-WIDTH)
+(define FONT-COLOR "black")
+(define GAME-OVER-TEXT (text "Game Over :-(" FONT-SIZE FONT-COLOR))
+(define GAME-WIN-TEXT (text "You win! :-)" FONT-SIZE FONT-COLOR))
 (define BACKGROUND (empty-scene WORLD-WIDTH WORLD-HEIGHT))
 
 
@@ -96,8 +100,10 @@
 (define MAX-CX 24)
 (define MAX-CY 2)
 (define starting-ufo (make-ufo (/ WORLD-WIDTH 2) MIN-UFO-Y MAX-CX MAX-CY))
+(define landed-ufo (make-ufo (- MAX-UFO-X 2) MAX-UFO-Y MAX-CX MAX-CY))
 
 (define game-start-state (make-game starting-tank starting-ufo))
+(define game-over-state (make-game starting-tank landed-ufo))
 
 ; space-invader: Game -> Game
 ; Runs the Space Invader game
@@ -106,8 +112,7 @@
             [to-draw render-game]
             [on-tick update-game]
             [on-key handle-key]
-            ;; [stop-when "_"]
-            ))
+            [stop-when game-over? render-game-final]))
 
 ; render-game: Game -> Image
 ; Renders the space invader game state
@@ -117,6 +122,18 @@
                (render-tank (game-tank game-start-state) BACKGROUND)))
 (define (render-game g)
   (render-ufo (game-ufo g) (render-tank (game-tank g) BACKGROUND)))
+
+; render-game-final: Game -> Game
+; Renders the final state of the game, with a message depending on the outcome
+(check-expect (render-game-final game-over-state)
+              (place-image GAME-OVER-TEXT
+                           (/ WORLD-WIDTH 2)
+                           (/ WORLD-HEIGHT 2)
+                           (render-game game-over-state)))
+(define (render-game-final g)
+  (place-image GAME-OVER-TEXT
+               (/ WORLD-WIDTH 2) (/ WORLD-HEIGHT 2)
+               (render-game g)))
 
 ; render-ufo: UFO Image -> Image
 ; Places UFO at `img`
@@ -212,6 +229,22 @@
              (and (key=? "right" ke) (not (tank-right? (game-tank g)))))
          (game-up-tank g (tank-change-dx (game-tank g)))]
         [else g]))
+
+; game-over? Game -> Boolean
+; True if the game is over (the UFO has landed or been hit)
+(check-expect (game-over? game-start-state)
+              (ufo-landed? (game-ufo game-start-state)))
+(check-expect (game-over? game-over-state)
+              (ufo-landed? (game-ufo game-over-state)))
+(define (game-over? g)
+  (ufo-landed? (game-ufo g)))
+
+; ufo-landed?: UFO -> Boolean
+; Returns true if the UFO is at the lowest point of the world
+(check-expect (ufo-landed? starting-ufo) #false)
+(check-expect (ufo-landed? landed-ufo) #true)
+(define (ufo-landed? u)
+  (<= MAX-UFO-Y (ufo-y u)))
 
 ; game-up-ufo: Game UFO -> Game
 ; Creates a new Game state, with `ufo` as the new `game-ufo`
