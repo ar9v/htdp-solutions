@@ -43,7 +43,8 @@
 (define WHEEL-AMOUNT 5)
 (define WHEEL-RADIUS (/ TANK-WIDTH (* WHEEL-AMOUNT 2)))
 (define UFO-RADIUS (* 1/2 TANK-WIDTH))
-(define UFO-Y-DELTA 10)
+(define UFO-Y-DELTA 5)
+(define MISSILE-Y-DELTA 5)
 (define WORLD-WIDTH (* 10 TANK-WIDTH))
 (define WORLD-HEIGHT (* 15 TANK-WIDTH))
 
@@ -103,7 +104,7 @@
 (define MIN-UFO-Y (+ (/ (image-height UFO) 2) 1))
 (define MAX-UFO-Y (- WORLD-HEIGHT (/ (image-height UFO) 2) 1))
 (define MAX-CX 24)
-(define MAX-CY 2)
+(define MAX-CY 5)
 (define starting-ufo (make-ufo (/ WORLD-WIDTH 2) MIN-UFO-Y MAX-CX MAX-CY))
 (define landed-ufo (make-ufo (- MAX-UFO-X 2) MAX-UFO-Y MAX-CX MAX-CY))
 
@@ -112,13 +113,15 @@
 ;
 ; posns: A list of where the current fired missiles are in the world
 ; cool: Cooldown for missile generation. A number in range [0, MAX-MISSILE-COOLDOWN]
-(define MAX-MISSILE-COOLDOWN 5)
-(define starting-missiles (make-missiles '() MAX-MISSILE-COOLDOWN))
+(define MAX-MISSILE-COOLDOWN 10)
+(define MISSILE-Y-START (- WORLD-HEIGHT (image-height TANK)))
+(define starting-missiles (make-missiles '() 0))
 (define fired-missiles (make-missiles (list (make-posn 10 35) (make-posn 50 70))
                                       MAX-MISSILE-COOLDOWN))
 
 (define game-start-state (make-game starting-tank starting-ufo starting-missiles))
 (define game-over-state (make-game starting-tank landed-ufo starting-missiles))
+(define game-with-fired-missiles (make-game starting-tank starting-ufo fired-missiles))
 
 ; space-invader: Game -> Game
 ; Runs the Space Invader game
@@ -137,8 +140,16 @@
                (render-ufo
                 (game-ufo game-start-state)
                 (render-tank (game-tank game-start-state) BACKGROUND))))
+(check-expect (render-game game-with-fired-missiles)
+              (render-missiles
+               (game-missiles game-with-fired-missiles)
+               (render-ufo
+                (game-ufo game-with-fired-missiles)
+                (render-tank (game-tank game-with-fired-missiles) BACKGROUND))))
 (define (render-game g)
-  (render-ufo (game-ufo g) (render-tank (game-tank g) BACKGROUND)))
+  (render-missiles
+   (game-missiles g)
+   (render-ufo (game-ufo g) (render-tank (game-tank g) BACKGROUND))))
 
 ; render-game-final: Game -> Game
 ; Renders the final state of the game, with a message depending on the outcome
@@ -196,12 +207,39 @@
 ; update-game: Game -> Game
 ; Updates the game state, moving its objects
 (check-expect (update-game game-start-state)
-              (game-up-ufo (game-up-tank game-start-state
-                                         (update-tank (game-tank game-start-state)))
-                           (update-ufo (game-ufo game-start-state))))
+              (game-up-ufo
+               (game-up-missiles
+                (game-up-tank game-start-state
+                              (update-tank (game-tank game-start-state)))
+                (update-missiles (game-missiles game-start-state)))
+               (update-ufo (game-ufo game-start-state))))
+(check-expect (update-game game-with-fired-missiles)
+              (game-up-ufo
+               (game-up-missiles
+                (game-up-tank game-with-fired-missiles
+                              (update-tank (game-tank game-with-fired-missiles)))
+                (update-missiles (game-missiles game-with-fired-missiles)))
+               (update-ufo (game-ufo game-with-fired-missiles))))
 (define (update-game g)
-  (game-up-ufo (game-up-tank g (update-tank (game-tank g)))
-               (update-ufo (game-ufo g))))
+  (game-up-ufo
+   (game-up-missiles
+    (game-up-tank g (update-tank (game-tank g)))
+    (update-missiles (game-missiles g)))
+   (update-ufo (game-ufo g))))
+
+; update-missiles: Missiles -> Missiles
+; Moves the missiles upwards, and cools the cannon down
+(check-expect (update-missiles starting-missiles)
+              (make-missiles '() 0))
+(check-expect (update-missiles fired-missiles)
+              (missiles-up-cool (missiles-up-posns
+                                 fired-missiles
+                                 (update-missiles-posns (missiles-posns fired-missiles)))
+                                (sub1 (missiles-cool fired-missiles))))
+(define (update-missiles ms)
+  (missiles-up-cool (missiles-up-posns ms
+                                       (update-missiles-posns (missiles-posns ms)))
+                    (max (sub1 (missiles-cool ms)) 0)))
 
 ; update-ufo: UFO -> UFO
 ; Creates a new UFO in a random x and UFO-Y-DELTA units down if the cooldowns for each
@@ -256,14 +294,21 @@
 ;
 ; "left": moves tank left
 ; "right": moves tank right
+; " ": fire a missile (if cooldown allows)
 (check-expect (handle-key game-start-state "a") game-start-state)
 (check-expect (handle-key game-start-state "left")
               (game-up-tank game-start-state (tank-change-dx (game-tank game-start-state))))
 (check-expect (handle-key game-start-state "right") game-start-state)
+(check-expect (handle-key game-start-state " ")
+              (game-up-missiles game-start-state
+                                (fire-missile (game-tank game-start-state)
+                                              (game-missiles game-start-state))))
 (define (handle-key g ke)
   (cond [(or (and (key=? "left" ke) (not (tank-left? (game-tank g))))
              (and (key=? "right" ke) (not (tank-right? (game-tank g)))))
          (game-up-tank g (tank-change-dx (game-tank g)))]
+        [(key=? ke " ")
+         (game-up-missiles g (fire-missile (game-tank g) (game-missiles g)))]
         [else g]))
 
 ; game-over? Game -> Boolean
@@ -300,6 +345,15 @@
 (define (game-up-tank g t)
   (make-game t (game-ufo g) (game-missiles g)))
 
+; game-up-missiles: Game Missiles -> Game
+; Creates a new Game state, with `ms` as the new missiles
+(check-expect (game-up-missiles game-start-state fired-missiles)
+              (make-game (game-tank game-start-state)
+                         (game-ufo game-start-state)
+                         fired-missiles))
+(define (game-up-missiles g ms)
+  (make-game (game-tank g) (game-ufo g) ms))
+
 ; tank-change-dx: Tank -> Tank
 ; Flips the direction of `tank`
 (check-expect (tank-change-dx (make-tank 2 4)) (make-tank 2 -4))
@@ -327,3 +381,56 @@
               (make-missiles '() (missiles-cool fired-missiles)))
 (define (missiles-up-posns ms ps)
   (make-missiles ps (missiles-cool ms)))
+
+; missiles-up-cool: Missiles Cooldown -> Missiles
+; Creates a new Missiles instance with the passed in Cooldown `c`
+(check-expect (missiles-up-cool fired-missiles 0)
+              (make-missiles (missiles-posns fired-missiles) 0))
+(define (missiles-up-cool ms c)
+  (make-missiles (missiles-posns ms) c))
+
+; fire-missile: Tank Missiles -> Missiles
+; When the Missiles have cooled down, fires another shot at `tank`'s x-coordinate
+(check-expect (fire-missile starting-tank starting-missiles)
+              (missiles-up-cool
+               (missiles-up-posns starting-missiles
+                                  (cons (make-posn (tank-x starting-tank) MISSILE-Y-START)
+                                        (missiles-posns starting-missiles)))
+               MAX-MISSILE-COOLDOWN))
+(define (fire-missile t ms)
+  (if (cooled-down? ms)
+      (missiles-up-cool
+       (missiles-up-posns ms (cons (make-posn (tank-x t) MISSILE-Y-START)
+                                   (missiles-posns ms)))
+       MAX-MISSILE-COOLDOWN)
+      (missiles-up-cool ms (sub1 (missiles-cool ms)))))
+
+; cooled-down?: Missiles -> Boolean
+; True if Missiles `m`'s cooldown value is 0
+(check-expect (cooled-down? starting-missiles) #true)
+(check-expect (cooled-down? fired-missiles) #false)
+(define (cooled-down? ms)
+  (zero? (missiles-cool ms)))
+
+; update-missiles-posns: List<Posns> -> List<Posns>
+; Moves all posns in `posns` upwards by MISSILE-Y-DELTA. Skips them if they're out of view.
+(check-expect (update-missiles-posns '()) '())
+(check-expect (update-missiles-posns (list (make-posn 1 MISSILE-Y-DELTA)))
+              (list (make-posn 1 0)))
+(check-expect (update-missiles-posns (list (make-posn 1 (add1 MISSILE-Y-DELTA)))) (list (make-posn 1 1)))
+(check-expect (update-missiles-posns (list (make-posn 1 (+ MISSILE-Y-DELTA 4))
+                                           (make-posn 1 MISSILE-Y-DELTA)
+                                           (make-posn 1 (+ MISSILE-Y-DELTA 2))))
+              (list (make-posn 1 4) (make-posn 1 0) (make-posn 1 2)))
+(check-expect (update-missiles-posns (list (make-posn 1 (+ MISSILE-Y-DELTA 4))
+                                           (make-posn 1 -1)
+                                           (make-posn 1 (+ MISSILE-Y-DELTA 2))))
+              (list (make-posn 1 4) (make-posn 1 2)))
+(define (update-missiles-posns posns)
+  (cond [(empty? posns) '()]
+        [(cons? posns)
+         (if (< (posn-y (first posns)) 0)
+             (update-missiles-posns (rest posns))
+             (cons (make-posn (posn-x (first posns))
+                              (- (posn-y (first posns)) MISSILE-Y-DELTA))
+                   (update-missiles-posns (rest posns))))]))
