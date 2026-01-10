@@ -43,7 +43,8 @@
 (define WHEEL-AMOUNT 5)
 (define WHEEL-RADIUS (/ TANK-WIDTH (* WHEEL-AMOUNT 2)))
 (define UFO-RADIUS (* 1/2 TANK-WIDTH))
-(define UFO-Y-DELTA 5)
+(define UFO-Y-DELTA 50)
+(define UFO-HITBOX (- UFO-RADIUS 1))
 (define MISSILE-Y-DELTA 5)
 (define WORLD-WIDTH (* 10 TANK-WIDTH))
 (define WORLD-HEIGHT (* 15 TANK-WIDTH))
@@ -78,7 +79,7 @@
 (define FONT-COLOR "black")
 (define GAME-OVER-TEXT (text "Game Over :-(" FONT-SIZE FONT-COLOR))
 (define GAME-WIN-TEXT (text "You win! :-)" FONT-SIZE FONT-COLOR))
-(define BACKGROUND (empty-scene WORLD-WIDTH WORLD-HEIGHT))
+(define BACKGROUND (empty-scene WORLD-WIDTH WORLD-HEIGHT "lightblue"))
 
 
 ; Data Definitions
@@ -103,8 +104,8 @@
 (define MAX-UFO-X (- WORLD-WIDTH (/ (image-width UFO) 2) 1))
 (define MIN-UFO-Y (+ (/ (image-height UFO) 2) 1))
 (define MAX-UFO-Y (- WORLD-HEIGHT (/ (image-height UFO) 2) 1))
-(define MAX-CX 24)
-(define MAX-CY 5)
+(define MAX-CX 10)
+(define MAX-CY 25)
 (define starting-ufo (make-ufo (/ WORLD-WIDTH 2) MIN-UFO-Y MAX-CX MAX-CY))
 (define landed-ufo (make-ufo (- MAX-UFO-X 2) MAX-UFO-Y MAX-CX MAX-CY))
 
@@ -113,7 +114,7 @@
 ;
 ; posns: A list of where the current fired missiles are in the world
 ; cool: Cooldown for missile generation. A number in range [0, MAX-MISSILE-COOLDOWN]
-(define MAX-MISSILE-COOLDOWN 10)
+(define MAX-MISSILE-COOLDOWN 20)
 (define MISSILE-Y-START (- WORLD-HEIGHT (image-height TANK)))
 (define starting-missiles (make-missiles '() 0))
 (define fired-missiles (make-missiles (list (make-posn 10 35) (make-posn 50 70))
@@ -122,6 +123,12 @@
 (define game-start-state (make-game starting-tank starting-ufo starting-missiles))
 (define game-over-state (make-game starting-tank landed-ufo starting-missiles))
 (define game-with-fired-missiles (make-game starting-tank starting-ufo fired-missiles))
+(define game-won-state
+  (make-game starting-tank
+             starting-ufo
+             (make-missiles (list (make-posn (ufo-x starting-ufo)
+                                             (ufo-y starting-ufo)))
+                            0)))
 
 ; space-invader: Game -> Game
 ; Runs the Space Invader game
@@ -158,8 +165,13 @@
                            (/ WORLD-WIDTH 2)
                            (/ WORLD-HEIGHT 2)
                            (render-game game-over-state)))
+(check-expect (render-game-final game-won-state)
+              (place-image GAME-WIN-TEXT
+                           (/ WORLD-WIDTH 2)
+                           (/ WORLD-HEIGHT 2)
+                           (render-game game-won-state)))
 (define (render-game-final g)
-  (place-image GAME-OVER-TEXT
+  (place-image (if (ufo-hit? g) GAME-WIN-TEXT GAME-OVER-TEXT)
                (/ WORLD-WIDTH 2) (/ WORLD-HEIGHT 2)
                (render-game g)))
 
@@ -314,11 +326,23 @@
 ; game-over? Game -> Boolean
 ; True if the game is over (the UFO has landed or been hit)
 (check-expect (game-over? game-start-state)
-              (ufo-landed? (game-ufo game-start-state)))
+              (or (ufo-hit? game-start-state)
+                  (ufo-landed? (game-ufo game-start-state))))
 (check-expect (game-over? game-over-state)
-              (ufo-landed? (game-ufo game-over-state)))
+              (or (ufo-hit? game-over-state)
+                  (ufo-landed? (game-ufo game-over-state))))
+(check-expect (game-over? game-won-state)
+              (or (ufo-hit? game-won-state)
+                  (ufo-landed? (game-ufo game-won-state))))
 (define (game-over? g)
-  (ufo-landed? (game-ufo g)))
+  (or (ufo-hit? g) (ufo-landed? (game-ufo g))))
+
+; ufo-hit?: Game -> Boolean
+; Returns true if any missile in the game is within the UFO-HITBOX
+(check-expect (ufo-hit? game-start-state) #false)
+(check-expect (ufo-hit? game-won-state) #true)
+(define (ufo-hit? g)
+  (any-missile-hits? (missiles-posns (game-missiles g)) (game-ufo g)))
 
 ; ufo-landed?: UFO -> Boolean
 ; Returns true if the UFO is at the lowest point of the world
@@ -434,3 +458,31 @@
              (cons (make-posn (posn-x (first posns))
                               (- (posn-y (first posns)) MISSILE-Y-DELTA))
                    (update-missiles-posns (rest posns))))]))
+
+; any-missile-hits?: List<Posns> UFO -> Boolean
+; True if there's a Posn within UFO-HITBOX of UFO `u`'s position
+(check-expect (any-missile-hits? (missiles-posns starting-missiles)
+                                 (game-ufo game-start-state))
+              #false)
+(check-expect (any-missile-hits? (missiles-posns (game-missiles game-won-state))
+                                 (game-ufo game-won-state))
+              #true)
+(define (any-missile-hits? ps u)
+  (cond [(empty? ps) #false]
+        [(cons? ps)
+         (or (< (distance (first ps) (make-posn (ufo-x u) (ufo-y u))) UFO-HITBOX)
+             (any-missile-hits? (rest ps) u))]))
+
+; distance: Posn Posn -> Number
+; Given p1 and p2, return the distance between them
+(check-expect (distance (make-posn 0 0) (make-posn 5 0)) 5)
+(check-expect (distance (make-posn 0 0) (make-posn 0 5)) 5)
+(check-expect (distance (make-posn 1 1) (make-posn 2 2))
+              (inexact->exact (sqrt (+ (sqr (- 2 1))
+                                       (sqr (- 2 1))))))
+(check-expect (distance (make-posn 20 100) (make-posn 22 103))
+              (inexact->exact (sqrt (+ (sqr (- 22 20))
+                                       (sqr (- 103 100))))))
+(define (distance p1 p2)
+  (inexact->exact (sqrt (+ (sqr (- (posn-x p2) (posn-x p1)))
+                           (sqr (- (posn-y p2) (posn-y p1)))))))
