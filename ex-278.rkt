@@ -13,6 +13,7 @@
 ;;; time. Tests will ensure that you aren’t introducing mistakes.
 
 (define ITEM-SIZE 20)
+(define STARTING-SIZE 2)
 (define SEGMENTS-PER-SIDE 30)
 (define DEFAULT-FRAME-RATE 1/15)
 (define WORLD-SIZE (* ITEM-SIZE SEGMENTS-PER-SIDE))
@@ -42,6 +43,30 @@
 (define UP "up")
 (define DOWN "down")
 
+; direction->posn: Direction -> Posn
+; Given a Direction, return the unit vector it represents
+(define (direction->posn d)
+  (cond [(equal? d UP) (make-posn 0 -1)]
+        [(equal? d RIGHT) (make-posn 1 0)]
+        [(equal? d DOWN) (make-posn 0 1)]
+        [(equal? d LEFT) (make-posn -1 0)]))
+
+; posn-add: Posn Posn -> Posn
+; Adds the two posns coordinate-wise
+(define (posn-add p1 p2)
+  (make-posn (+ (posn-x p1) (posn-x p2)) (+ (posn-y p1) (posn-y p2))))
+
+; posn-sub: Posn Posn -> Posn
+; Adds the two posns coordinate-wise
+(define (posn-sub p1 p2)
+  (make-posn (- (posn-x p1) (posn-x p2)) (- (posn-y p1) (posn-y p2))))
+
+; posn-scale: Posn Number -> Posn
+; Scales the given `posn` by `n`; i.e. it produces a new posn where each component is
+; the component times `n`
+(define (posn-scale p n)
+  (make-posn (* (posn-x p) n) (* (posn-y p) n)))
+
 ; build-worm: Posn Number Direction -> Worm
 ; Creates a Worm instance with a head at `posn` and `n` segments
 (check-expect (build-worm (make-posn 0 0) 2 UP)
@@ -55,7 +80,7 @@
               (posn-sub p (posn-scale direction-vector segments-to-head))))]
     (make-worm (build-list n make-segment) (list d))))
 
-(define worm-right (make-worm (list (make-posn 0 0) (make-posn 1 0)) (list RIGHT)))
+(define worm-right (build-worm (make-posn 1 0) STARTING-SIZE RIGHT))
 (define worm-up (make-worm (list (make-posn 0 1) (make-posn 0 0)) (list UP)))
 (define worm-multiple-dirs (make-worm (list (make-posn 3 4)) (list UP LEFT)))
 
@@ -78,7 +103,15 @@
             [to-draw render-game]
             [on-tick update-game r]
             [on-key handle-key]
-            [stop-when game-over? render-game]))
+            [stop-when game-over? render-game-final]))
+
+; render-game-final: Game -> Image
+; Renders the final state, with a game over message and the final score
+(check-expect (render-game-final dummy-initial-game-state)
+              (overlay (game-over-banner dummy-initial-game-state)
+                       (render-game dummy-initial-game-state)))
+(define (render-game-final g)
+  (overlay (game-over-banner g) (render-game g)))
 
 ; render-game: Game -> Image
 ; Render the game state in CANVAS
@@ -111,6 +144,23 @@
                 (place-game-image FOOD fx fy CANVAS)))
 (define (render-food f img)
   (place-game-image FOOD (posn-x f) (posn-y f) img))
+
+; game-over-banner: Game -> Image
+; Produces a game over text overlayed on top of a semi-transparent rectangle
+(define (game-over-banner g)
+  (local [(define FONT-SIZE (* ITEM-SIZE 2))
+          (define FONT-COLOR "white")
+          (define score-string (number->string (- (length (worm-posns (game-worm g)))
+                                                  STARTING-SIZE)))
+          (define game-over-text
+            (above (text "Game Over" FONT-SIZE FONT-COLOR)
+                   (text (string-append "Score: " score-string) FONT-SIZE FONT-COLOR)))
+          (define banner-bg
+            (rectangle (* 2/3 WORLD-SIZE)
+                       (+ (image-height game-over-text) 10)
+                       "solid"
+                       (make-color 0 0 0 170)))]
+    (overlay game-over-text banner-bg)))
 
 ; place-game-image: Image Number Number Image -> Image
 ; Wrapper around `place-image/align`, since we intend to always align on "top" "left"
@@ -191,30 +241,6 @@
 ; Creates a new Worm by applying `updater` to the current directions
 (define (worm-up-directions w updater)
   (make-worm (worm-posns w) (updater (worm-directions w))))
-
-; direction->posn: Direction -> Posn
-; Given a Direction, return the unit vector it represents
-(define (direction->posn d)
-  (cond [(equal? d UP) (make-posn 0 -1)]
-        [(equal? d RIGHT) (make-posn 1 0)]
-        [(equal? d DOWN) (make-posn 0 1)]
-        [(equal? d LEFT) (make-posn -1 0)]))
-
-; posn-add: Posn Posn -> Posn
-; Adds the two posns coordinate-wise
-(define (posn-add p1 p2)
-  (make-posn (+ (posn-x p1) (posn-x p2)) (+ (posn-y p1) (posn-y p2))))
-
-; posn-sub: Posn Posn -> Posn
-; Adds the two posns coordinate-wise
-(define (posn-sub p1 p2)
-  (make-posn (- (posn-x p1) (posn-x p2)) (- (posn-y p1) (posn-y p2))))
-
-; posn-scale: Posn Number -> Posn
-; Scales the given `posn` by `n`; i.e. it produces a new posn where each component is
-; the component times `n`
-(define (posn-scale p n)
-  (make-posn (* (posn-x p) n) (* (posn-y p) n)))
 
 ; worm-eat-food? Game -> Boolean
 ; True if `game`'s worm is in the vicinity of its food (read, they have overlapping areas
