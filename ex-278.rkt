@@ -93,8 +93,8 @@
 
 (define dummy-initial-game-state
   (make-game worm-right
-             (make-posn (sub1 SEGMENTS-PER-SIDE)
-                        (sub1 SEGMENTS-PER-SIDE))))
+             (make-posn (floor (/ SEGMENTS-PER-SIDE 2))
+                        (floor (/ SEGMENTS-PER-SIDE 2)))))
 
 ; worm-game: Game Number -> Game
 ; Runs the worm game at a rate of `r` (frames per clock tick)
