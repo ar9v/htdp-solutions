@@ -76,7 +76,8 @@
   (big-bang g
             [to-draw render-game]
             [on-tick update-game r]
-            [on-key handle-key]))
+            [on-key handle-key]
+            [stop-when game-over?]))
 
 ; render-game: Game -> Image
 ; Render the game state in CANVAS
@@ -294,3 +295,23 @@
                (if (empty? rest-directions)
                    (worm-directions w)
                    rest-directions))))
+
+; game-over?: Game -> Boolean
+; True if the game's worm runs into itself or into a wall
+(check-expect
+ (game-over? (make-game
+              (build-worm (make-posn (random SEGMENTS-PER-SIDE)
+                                     (random SEGMENTS-PER-SIDE))
+                          3 LEFT)
+              (create-food (make-posn 0 0)))) #false)
+(define (game-over? g)
+  (worm-out-of-bounds? (game-worm g)))
+
+; worm-out-of-bounds?: Worm -> Boolean
+; True if the worm has any coordinate:
+; - below 0
+; - >= SEGMENTS-PER-SIDE
+(define (worm-out-of-bounds? w)
+  (local [(define head (worm-posns-head w))
+          (define (oob? coord) (or (< coord 0) (<= SEGMENTS-PER-SIDE coord)))]
+    (ormap oob? (list (posn-x head) (posn-y head)))))
