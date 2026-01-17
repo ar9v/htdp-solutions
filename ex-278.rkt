@@ -54,7 +54,7 @@
               (posn-sub p (posn-scale direction-vector segments-to-head))))]
     (make-worm (build-list n make-segment) (list d))))
 
-(define worm-right (make-worm (list (make-posn 0 0)) (list RIGHT)))
+(define worm-right (make-worm (list (make-posn 0 0) (make-posn 1 0)) (list RIGHT)))
 (define worm-up (make-worm (list (make-posn 0 1) (make-posn 0 0)) (list UP)))
 (define worm-multiple-dirs (make-worm (list (make-posn 3 4)) (list UP LEFT)))
 
@@ -77,7 +77,7 @@
             [to-draw render-game]
             [on-tick update-game r]
             [on-key handle-key]
-            [stop-when game-over?]))
+            [stop-when game-over? render-game]))
 
 ; render-game: Game -> Image
 ; Render the game state in CANVAS
@@ -138,7 +138,7 @@
 ; update-worm: Worm -> Worm
 ; Moves the worm
 (check-expect (update-worm worm-right)
-              (make-worm (list (make-posn 1 0)) (list RIGHT)))
+              (make-worm (list (make-posn 1 0) (make-posn 2 0)) (list RIGHT)))
 (check-expect (update-worm worm-up)
               (make-worm (list (make-posn 0 0) (make-posn 0 -1)) (list UP)))
 (check-expect (update-worm worm-multiple-dirs)
