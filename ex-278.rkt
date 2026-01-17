@@ -13,7 +13,7 @@
 ;;; time. Tests will ensure that you aren’t introducing mistakes.
 
 (define ITEM-SIZE 25)
-(define SEGMENTS-PER-SIDE 10)
+(define SEGMENTS-PER-SIDE 20)
 (define WORLD-SIZE (* ITEM-SIZE SEGMENTS-PER-SIDE))
 
 (define WORM
@@ -48,12 +48,10 @@
 (check-expect (build-worm (make-posn 0 0) 3 LEFT)
               (make-worm (list (make-posn 2 0) (make-posn 1 0) (make-posn 0 0)) LEFT))
 (define (build-worm p n d)
-  (local [(define dx (cond [(equal? d RIGHT) 1] [(equal? d LEFT) -1] [else 0]))
-          (define dy (cond [(equal? d DOWN)  1] [(equal? d UP)   -1] [else 0]))
+  (local [(define direction-vector (direction->posn d))
           (define (make-segment i)
-            (let ([segments-to-head (- (sub1 n) i)])
-              (make-posn (- (posn-x p) (* segments-to-head dx))
-                         (- (posn-y p) (* segments-to-head dy)))))]
+            (local [(define segments-to-head (- (sub1 n) i))]
+              (posn-sub p (posn-scale direction-vector segments-to-head))))]
     (make-worm (build-list n make-segment) d)))
 
 (define worm-right (make-worm (list (make-posn 0 0)) RIGHT))
@@ -71,11 +69,13 @@
              (make-posn (sub1 SEGMENTS-PER-SIDE)
                         (sub1 SEGMENTS-PER-SIDE))))
 
-; worm-game: Game -> Game
-; Runs the worm game
-(define (worm-game g)
+; worm-game: Game Number -> Game
+; Runs the worm game at a rate of `r` (frames per clock tick)
+(define (worm-game g r)
   (big-bang g
-            [to-draw render-game]))
+            [to-draw render-game]
+            [on-tick update-game r]
+            [on-key handle-key]))
 
 ; render-game: Game -> Image
 ; Render the game state in CANVAS
@@ -119,3 +119,154 @@
                                  CANVAS))
 (define (place-game-image img x y bg)
   (place-image/align img (* ITEM-SIZE x) (* ITEM-SIZE y) "left" "top" bg))
+
+; update-game: Game -> Game
+; updates the game state
+(check-expect (update-game dummy-initial-game-state)
+              (game-up-worm dummy-initial-game-state
+                            (update-worm (game-worm dummy-initial-game-state))))
+(define (update-game g)
+  (local [(define updated-worm (update-worm (game-worm g)))]
+    (if (worm-eat-food? g)
+        (game-up-food
+         (game-up-worm g (expand-worm updated-worm))
+         (create-food (game-food g)))
+        (game-up-worm g updated-worm))))
+
+; update-worm: Worm -> Worm
+; Moves the worm
+(check-expect (update-worm worm-right)
+              (make-worm (list (make-posn 1 0)) RIGHT))
+(check-expect (update-worm worm-up)
+              (make-worm (list (make-posn 0 0) (make-posn 0 -1)) UP))
+(define (update-worm w)
+  (worm-up-posns w (rest (worm-posns (expand-worm w)))))
+
+; game-up-food: Game Posn -> Game
+; Creates a new Game state with a new piece of food in position `p`
+(define (game-up-food g p)
+  (make-game (game-worm g) p))
+
+; game-up-worm: Game Worm -> Game
+; Creates a new Game state with a new Worm `w`
+(check-expect (game-up-worm dummy-initial-game-state
+                            (build-worm (make-posn 0 5) 5 DOWN))
+              (make-game (build-worm (make-posn 0 5) 5 DOWN)
+                         (game-food dummy-initial-game-state)))
+(define (game-up-worm g w)
+  (make-game w (game-food g)))
+
+; handle-key: Game KeyEvent -> Game
+; Changes the game's worm direction depending on the key
+(define (handle-key g ke)
+  (if (equal? (game-worm g) (worm-handle-key (game-worm g) ke))
+      g
+      (update-game (make-game (worm-handle-key (game-worm g) ke) (game-food g)))))
+
+; worm-handle-key: Worm KeyEvent -> Worm
+; Produces a new Worm based on the provided KeyEvent `ke`.
+;
+; - This ignores all KeyEvents that aren't arrows
+; - If a worm is moving RIGHT, it won't be updated to move LEFT and vice-versa
+; - A KeyEvent in the same direction the worm is going is ignored
+(define (worm-handle-key w ke)
+  (if
+   (cond [(or (key=? ke "left") (key=? ke "right"))
+          (or (equal? (worm-direction w) LEFT) (equal? (worm-direction w) RIGHT))]
+         [(or (key=? ke "up") (key=? ke "down"))
+          (or (equal? (worm-direction w) UP) (equal? (worm-direction w) DOWN))]
+         [else #true])
+   w
+   (worm-up-direction w ke)))
+
+; worm-up-direction: Worm Direction -> Worm
+; Creates a new Worm with the given Direction `d`
+(define (worm-up-direction w d)
+  (make-worm (worm-posns w) d))
+
+; direction->posn: Direction -> Posn
+; Given a Direction, return the unit vector it represents
+(define (direction->posn d)
+  (cond [(equal? d UP) (make-posn 0 -1)]
+        [(equal? d RIGHT) (make-posn 1 0)]
+        [(equal? d DOWN) (make-posn 0 1)]
+        [(equal? d LEFT) (make-posn -1 0)]))
+
+; posn-add: Posn Posn -> Posn
+; Adds the two posns coordinate-wise
+(define (posn-add p1 p2)
+  (make-posn (+ (posn-x p1) (posn-x p2)) (+ (posn-y p1) (posn-y p2))))
+
+; posn-sub: Posn Posn -> Posn
+; Adds the two posns coordinate-wise
+(define (posn-sub p1 p2)
+  (make-posn (- (posn-x p1) (posn-x p2)) (- (posn-y p1) (posn-y p2))))
+
+; posn-scale: Posn Number -> Posn
+; Scales the given `posn` by `n`; i.e. it produces a new posn where each component is
+; the component times `n`
+(define (posn-scale p n)
+  (make-posn (* (posn-x p) n) (* (posn-y p) n)))
+
+; worm-eat-food? Game -> Boolean
+; True if `game`'s worm is in the vicinity of its food (read, they have overlapping areas
+; within WORM-EATING-DELTA)
+(define (worm-eat-food? g)
+  (local [(define direction-vector (direction->posn (worm-direction (game-worm g))))]
+    (equal? (posn-add (worm-posns-head (game-worm g)) direction-vector)
+            (game-food g))))
+
+; Posn -> Posn
+; Creates a random Posn in the range ([0, WORLD-WIDTH), [0, WORLD-HEIGHT)).
+; Uses `food-check-create` to guarantee that the new Posn is _not_ `p`
+(check-satisfied (create-food (make-posn 1 1)) not=-1-1?)
+(define (create-food p)
+  (create-food-check
+   p (make-posn (random (sub1 SEGMENTS-PER-SIDE))
+                (random (sub1 SEGMENTS-PER-SIDE)))))
+
+; Posn Posn -> Posn
+; generative recursion
+; Checks if `p` and `candidate` are equal. If they are, tries generating a new candidate.
+(define (create-food-check p candidate)
+  (if (equal? p candidate) (create-food p) candidate))
+
+; Posn -> Boolean
+; use for testing only
+(define (not=-1-1? p)
+  (not (and (= (posn-x p) 1) (= (posn-y p) 1))))
+
+; expand-worm: Worm -> Worm
+; Given `worm`, produce a new worm with that has an extra segment which respects `worm`'s
+; direction
+(check-expect (expand-worm worm-right)
+              (worm-up-posns worm-right (append (worm-posns worm-right)
+                                                (list (posn-add (worm-posns-head worm-right)
+                                                                (make-posn 1 0))))))
+(define (expand-worm w)
+  (worm-up-posns
+   w
+   (append (worm-posns w)
+           (list (posn-add (worm-posns-head w)
+                           (direction->posn (worm-direction w)))))))
+
+
+; worm-posns-head: Worm -> Posn
+; Retrieves the head Posn of a worm
+(check-expect (worm-posns-head worm-up) (make-posn 0 0))
+(define (worm-posns-head worm)
+  (last (worm-posns worm)))
+
+; worm-up-posns: Worm [List-of Posn] -> Worm
+; Creates a new Worm with positions `posns`
+(define (worm-up-posns w ps)
+  (make-worm ps (worm-direction w)))
+
+; last: [NonEmptyList-of Any] -> Any
+; Retrieves the last element of a non empty list
+(check-expect (last (list 1)) 1)
+(check-expect (last (list "foo" "bar")) "bar")
+(check-expect (last (list #false #false #true)) #true)
+(define (last nel)
+  (cond [(empty? (rest nel)) (first nel)]
+        [else (last (rest nel))]))
