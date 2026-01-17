@@ -12,8 +12,9 @@
 ;;; in ISL. Look for places to use them and replace existing code, a piece at a
 ;;; time. Tests will ensure that you aren’t introducing mistakes.
 
-(define ITEM-SIZE 25)
-(define SEGMENTS-PER-SIDE 20)
+(define ITEM-SIZE 20)
+(define SEGMENTS-PER-SIDE 30)
+(define DEFAULT-FRAME-RATE 1/15)
 (define WORLD-SIZE (* ITEM-SIZE SEGMENTS-PER-SIDE))
 
 (define WORM
