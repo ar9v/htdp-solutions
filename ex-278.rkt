@@ -305,7 +305,8 @@
                           3 LEFT)
               (create-food (make-posn 0 0)))) #false)
 (define (game-over? g)
-  (worm-out-of-bounds? (game-worm g)))
+  (or (worm-out-of-bounds? (game-worm g))
+      (worm-eats-itself? (game-worm g))))
 
 ; worm-out-of-bounds?: Worm -> Boolean
 ; True if the worm has any coordinate:
@@ -315,3 +316,31 @@
   (local [(define head (worm-posns-head w))
           (define (oob? coord) (or (< coord 0) (<= SEGMENTS-PER-SIDE coord)))]
     (ormap oob? (list (posn-x head) (posn-y head)))))
+
+; worm-eats-itself?: Worm -> Boolean
+; True if the head of the worm is at thee same position as any of its other segments
+(check-expect (worm-eats-itself? worm-right) #false)
+(check-expect
+ (worm-eats-itself?
+  (make-worm (list (make-posn 0 0)
+                   (make-posn 1 0)
+                   (make-posn 2 0)
+                   (make-posn 2 1)
+                   (make-posn 1 1)
+                   (make-posn 1 0))
+             (list UP)))
+ #true)
+(define (worm-eats-itself? w)
+  (local [(define head (worm-posns-head w))
+          (define (head? p) (equal? p head))]
+    (ormap head? (but-last (worm-posns w)))))
+
+
+; but-last: [List-of X] -> [List-of X]
+; Returns a list made up of `l`'s elements, save for the last one
+(check-expect (but-last '()) '())
+(check-expect (but-last (list 1)) '())
+(check-expect (but-last (list 1 2)) (list 1))
+(define (but-last l)
+  (cond [(or (empty? l) (empty? (rest l))) '()]
+        [else (cons (first l) (but-last (rest l)))]))
