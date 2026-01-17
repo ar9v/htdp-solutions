@@ -21,14 +21,14 @@
            (square ITEM-SIZE "solid" "black")))
 (define FOOD (square ITEM-SIZE "solid" "brown"))
 (define CANVAS (empty-scene WORLD-SIZE WORLD-SIZE))
-(define-struct worm [posns direction])
 
+(define-struct worm [posns directions])
 ; a Worm is a structure
-;  (make-worm [Posn] Direction)
+;  (make-worm [Posn] [NonEmptyList-of Direction])
 ;
 ; interpretation:
-; (make-worm ps d) represents a worm whose segments are at positions `ps`,
-; moving LEFT, RIGHT, UP, or DOWN.
+; (make-worm ps ds) represents a worm whose segments are at positions `ps`,
+; moving LEFT, RIGHT, UP, or DOWN according to the last element of `ds`.
 ;
 ; A position represents the upper-left coordinate of a segment, and as such
 ; each coordinate can only be in the range [0, SEGMENTS-PER-SIDE)
@@ -44,18 +44,19 @@
 ; build-worm: Posn Number Direction -> Worm
 ; Creates a Worm instance with a head at `posn` and `n` segments
 (check-expect (build-worm (make-posn 0 0) 2 UP)
-              (make-worm (list (make-posn 0 1) (make-posn 0 0)) UP))
+              (make-worm (list (make-posn 0 1) (make-posn 0 0)) (list UP)))
 (check-expect (build-worm (make-posn 0 0) 3 LEFT)
-              (make-worm (list (make-posn 2 0) (make-posn 1 0) (make-posn 0 0)) LEFT))
+              (make-worm (list (make-posn 2 0) (make-posn 1 0) (make-posn 0 0)) (list LEFT)))
 (define (build-worm p n d)
   (local [(define direction-vector (direction->posn d))
           (define (make-segment i)
             (local [(define segments-to-head (- (sub1 n) i))]
               (posn-sub p (posn-scale direction-vector segments-to-head))))]
-    (make-worm (build-list n make-segment) d)))
+    (make-worm (build-list n make-segment) (list d))))
 
-(define worm-right (make-worm (list (make-posn 0 0)) RIGHT))
-(define worm-up (make-worm (list (make-posn 0 1) (make-posn 0 0)) UP))
+(define worm-right (make-worm (list (make-posn 0 0)) (list RIGHT)))
+(define worm-up (make-worm (list (make-posn 0 1) (make-posn 0 0)) (list UP)))
+(define worm-multiple-dirs (make-worm (list (make-posn 3 4)) (list UP LEFT)))
 
 (define-struct game [worm food])
 ; a Game is a structure
@@ -136,14 +137,19 @@
 ; update-worm: Worm -> Worm
 ; Moves the worm
 (check-expect (update-worm worm-right)
-              (make-worm (list (make-posn 1 0)) RIGHT))
+              (make-worm (list (make-posn 1 0)) (list RIGHT)))
 (check-expect (update-worm worm-up)
-              (make-worm (list (make-posn 0 0) (make-posn 0 -1)) UP))
+              (make-worm (list (make-posn 0 0) (make-posn 0 -1)) (list UP)))
+(check-expect (update-worm worm-multiple-dirs)
+              (make-worm (list (make-posn 3 3)) (list LEFT)))
 (define (update-worm w)
-  (worm-up-posns w (rest (worm-posns (expand-worm w)))))
+  (worm-next-direction
+   (worm-up-posns w (rest (worm-posns (expand-worm w))))))
 
 ; game-up-food: Game Posn -> Game
 ; Creates a new Game state with a new piece of food in position `p`
+(check-expect (game-up-food dummy-initial-game-state (make-posn 3 3))
+              (make-game (game-worm dummy-initial-game-state) (make-posn 3 3)))
 (define (game-up-food g p)
   (make-game (game-worm g) p))
 
@@ -161,7 +167,7 @@
 (define (handle-key g ke)
   (if (equal? (game-worm g) (worm-handle-key (game-worm g) ke))
       g
-      (update-game (make-game (worm-handle-key (game-worm g) ke) (game-food g)))))
+      (make-game (worm-handle-key (game-worm g) ke) (game-food g))))
 
 ; worm-handle-key: Worm KeyEvent -> Worm
 ; Produces a new Worm based on the provided KeyEvent `ke`.
@@ -177,12 +183,12 @@
           (or (equal? (worm-direction w) UP) (equal? (worm-direction w) DOWN))]
          [else #true])
    w
-   (worm-up-direction w ke)))
+   (worm-up-directions w (local [(define (up ds) (append ds (list ke)))] up))))
 
-; worm-up-direction: Worm Direction -> Worm
-; Creates a new Worm with the given Direction `d`
-(define (worm-up-direction w d)
-  (make-worm (worm-posns w) d))
+; worm-up-directions: Worm [[List-of Direction] -> [List-of Direction] -> Worm
+; Creates a new Worm by applying `updater` to the current directions
+(define (worm-up-directions w updater)
+  (make-worm (worm-posns w) (updater (worm-directions w))))
 
 ; direction->posn: Direction -> Posn
 ; Given a Direction, return the unit vector it represents
@@ -260,7 +266,7 @@
 ; worm-up-posns: Worm [List-of Posn] -> Worm
 ; Creates a new Worm with positions `posns`
 (define (worm-up-posns w ps)
-  (make-worm ps (worm-direction w)))
+  (make-worm ps (worm-directions w)))
 
 ; last: [NonEmptyList-of Any] -> Any
 ; Retrieves the last element of a non empty list
@@ -270,3 +276,21 @@
 (define (last nel)
   (cond [(empty? (rest nel)) (first nel)]
         [else (last (rest nel))]))
+
+; worm-direction: Worm -> Direction
+; Gets the first Posn in `worm-directions`
+(define (worm-direction w)
+  (first (worm-directions w)))
+
+; worm-next-direction: Worm -> Worm
+; Returns a new Worm instance, after processing the latest direction
+(check-expect (worm-next-direction worm-multiple-dirs)
+              (make-worm (worm-posns worm-multiple-dirs)
+                         (rest (worm-directions worm-multiple-dirs))))
+(check-expect (worm-next-direction worm-right) worm-right)
+(define (worm-next-direction w)
+  (local [(define rest-directions (rest (worm-directions w)))]
+    (make-worm (worm-posns w)
+               (if (empty? rest-directions)
+                   (worm-directions w)
+                   rest-directions))))
