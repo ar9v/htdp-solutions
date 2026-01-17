@@ -332,9 +332,7 @@
              (list UP)))
  #true)
 (define (worm-eats-itself? w)
-  (local [(define head (worm-posns-head w))
-          (define (head? p) (equal? p head))]
-    (ormap head? (but-last (worm-posns w)))))
+  (member (worm-posns-head w) (but-last (worm-posns w))))
 
 
 ; but-last: [List-of X] -> [List-of X]
