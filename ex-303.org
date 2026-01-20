@@ -1,0 +1,16 @@
+* Ex. 303
+
+#+begin_quote
+Draw arrows from the shaded occurrences of =x= to their binding occurrences in each of the
+following three =lambda= expressions. Also draw a box for the scope of each shaded =x= and
+holes in the scope as necessary.
+#+end_quote
+
+** Expression 1
+[[./ex-303-1.png]]
+
+** Expression 2
+[[./ex-303-2.png]]
+
+** Expression 3
+[[./ex-303-3.png]]
