@@ -4,7 +4,6 @@
 ;;; suite. As you read along the remainder of this section, perform the edits and rerun
 ;;; the test suites to confirm the validity of our arguments
 
-
 ;;; Define the `atom?` function
 (define (atom? s-exp)
   (or (number? s-exp) (string? s-exp) (symbol? s-exp)))
@@ -20,13 +19,6 @@
 (check-expect (substitute '(((world) bye) bye) 'hello '42)
               '(((world) bye) bye))
 (define (substitute sexp old new)
-  (local (; S-expr -> S-expr
-          (define (for-sexp sexp)
-            (cond
-              [(atom? sexp) (for-atom sexp)]
-              [else (for-sl sexp)]))
-          ; SL -> S-expr
-          (define (for-sl sl) (map for-sexp sl))
-          ; Atom -> S-expr
-          (define (for-atom at) (if (equal? at old) new at)))
-    (for-sexp sexp)))
+  (cond
+    [(atom? sexp) (if (equal? sexp old) new sexp)]
+    [else (map (λ (s) (substitute s old new)) sexp)]))
