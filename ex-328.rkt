@@ -26,11 +26,7 @@
               [(atom? sexp) (for-atom sexp)]
               [else (for-sl sexp)]))
           ; SL -> S-expr
-          (define (for-sl sl)
-            (cond
-              [(empty? sl) '()]
-              [else (cons (for-sexp (first sl))
-                          (for-sl (rest sl)))]))
+          (define (for-sl sl) (map for-sexp sl))
           ; Atom -> S-expr
           (define (for-atom at)
             (cond
