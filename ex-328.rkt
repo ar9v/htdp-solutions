@@ -28,9 +28,5 @@
           ; SL -> S-expr
           (define (for-sl sl) (map for-sexp sl))
           ; Atom -> S-expr
-          (define (for-atom at)
-            (cond
-              [(number? at) at]
-              [(string? at) at]
-              [(symbol? at) (if (equal? at old) new at)])))
+          (define (for-atom at) (if (equal? at old) new at)))
     (for-sexp sexp)))
