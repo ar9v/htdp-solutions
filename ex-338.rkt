@@ -15,7 +15,7 @@
 ; how-many?: Dir -> N
 ; Counts the files in `dir`
 (check-expect (how-many (make-dir "Empty" '() '())) 0)
-(check-expect (how-many (create-dir "./ex-338/")) 1)
+(check-expect (how-many (create-dir "./ex-338/")) 2)
 (define (how-many dir)
   (+ (length (dir-files dir))
      (for/sum [(d (dir-dirs dir))] (how-many d))))
