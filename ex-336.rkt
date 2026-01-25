@@ -1,7 +1,5 @@
 #lang htdp/isl+
 
-(require 2htdp/abstraction)
-
 ;;; Design the function `how-many`, which determines how many files a given Dir.v3
 ;;; contains. Exercise 335 provides you with data examples. Compare your result with
 ;;; that of exercise 333.
@@ -45,8 +43,12 @@
 (check-expect (how-many (make-dir "Empty" '() '())) 0)
 (check-expect (how-many ts) 7)
 (define (how-many dir)
-  (+ (length (dir-files dir))
-     (for/sum [(d (dir-dirs dir))] (how-many d))))
+  (local [(define (how-many-in-dirs ds)
+            (cond [(empty? ds) 0]
+                  [(cons? ds) (+ (how-many (first ds))
+                                 (how-many-in-dirs (rest ds)))]))]
+    (+ (length (dir-files dir))
+       (how-many-in-dirs (dir-dirs dir)))))
 
 ;;; Given the complexity of the data definition, contemplate how anyone can design
 ;;; correct functions. Why are you confident that `how-many` produces correct results?
