@@ -1,0 +1,14 @@
+* Ex. 350
+
+#+begin_quote
+What is unusual about the definition of this program with respect to the design recipe?
+
+*NOTE:* One unusual aspect is that =parse= uses =length= on the list argument. Real parsers
+avoid =length= because it slows the functions down.
+#+end_quote
+
+** Answer
+The function (at least =parse-sl=) does not follow the template we'd
+come up by following /S-expr/'s data definition: it relies on =length=, its =cond= clauses
+check to make sure that the length is a given number, and generally speaking, it "peeks"
+into the provided expression to determine what to do.
