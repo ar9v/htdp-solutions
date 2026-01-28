@@ -150,11 +150,6 @@ That is, given a series of forms FORM1, FORM2 ... up to an empty line
    '("Lang: "
      "#lang htdp/" str \n
      \n
-     (and (yes-or-no-p "Add requires?" )
-          '(nil
-            "(require 2htdp/image)"    \n
-            "(require 2htdp/universe)" \n
-            \n))
      ";;; ")))
 
 (define-skeleton htdp/skeleton/define-fn
