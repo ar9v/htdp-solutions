@@ -3,4 +3,7 @@
 ** TODOs
 - 33
 - 225
-- 278: Add stuff to `worm-game`, make it nice, refactor (-:
+- 278
+  Add stuff to `worm-game`, make it nice, refactor (-:
+- 362
+  This is done, but the book makes suggestions to make the interpreter better.
