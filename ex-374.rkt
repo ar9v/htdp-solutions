@@ -82,13 +82,12 @@
                                         (render-item nested-item)
                                         empty-image)))
 (define (render-enum xenum)
-  (local [(define (render-items is)
-            (foldr (λ (item so-far) (above/align 'left
-                                                 (render-item item)
-                                                 so-far))
-                   empty-image
-                   is))]
-    (render-items (xexpr-content xenum))))
+  (local [(define content (xexpr-content xenum))
+          (define (deal-with-one item so-far)
+            (above/align 'left
+                         (render-item item)
+                         so-far))]
+    (foldr deal-with-one empty-image content)))
 
 ; render-item: XItem -> Image
 ; renders one XItem.v2 as an image
