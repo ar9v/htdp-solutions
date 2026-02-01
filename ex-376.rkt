@@ -19,20 +19,30 @@
        (li (word ((text "goodbye"))))
        (ul (li (ul (li (word ((text "goodbye")))))))))
 
+; count-words: XEnum String -> Number
+; Counts how many times the text `str` appears in `xenum`
+(check-expect (count-words no-hellos "hello") 0)
+(check-expect (count-words one-hello "hello") 1)
+(check-expect (count-words three-hello-flat "hello") 3)
+(check-expect (count-words three-hello-nested "hello") 3)
+(check-expect (count-words no-hellos "goodbye") 3)
+(define (count-words xenum str)
+  (local [(define (count-word/item item)
+            (local [(define first-child (first (xexpr-content item)))]
+              (cond [(word? first-child)
+                     (if (string=? (word-text first-child) str) 1 0)]
+                    [else (count-words item str)])))
+          (define (deal-with-one item so-far) (+ (count-word/item item) so-far))]
+    (foldr deal-with-one 0 (xexpr-content xenum))))
+
 ; hellos: XEnum -> Number
-;; (check-expect (count-hello ))
+; Checks how many times the text "hello" appears in `xenum`
 (check-expect (count-hello no-hellos) 0)
 (check-expect (count-hello one-hello) 1)
 (check-expect (count-hello three-hello-flat) 3)
 (check-expect (count-hello three-hello-nested) 3)
 (define (count-hello xenum)
-  (local [(define (count-hello/item item)
-            (local [(define first-child (first (xexpr-content item)))]
-              (cond [(word? first-child)
-                     (if (string=? (word-text first-child) "hello") 1 0)]
-                    [else (count-hello item)])))
-          (define (deal-with-one item so-far) (+ (count-hello/item item) so-far))]
-    (foldr deal-with-one 0 (xexpr-content xenum))))
+  (count-words xenum "hello"))
 
 ; xexpr-content: Xexpr -> Body
 ; Produces the body of `xe`, meaning, the nested Xexprs within it
