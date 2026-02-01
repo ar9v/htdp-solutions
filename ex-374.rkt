@@ -83,11 +83,11 @@
                                         empty-image)))
 (define (render-enum xenum)
   (local [(define (render-items is)
-            (cond [(empty? is) empty-image]
-                  [(cons? is)
-                   (above/align 'left
-                                (render-item (first is))
-                                (render-items (rest is)))]))]
+            (foldr (λ (item so-far) (above/align 'left
+                                                 (render-item item)
+                                                 so-far))
+                   empty-image
+                   is))]
     (render-items (xexpr-content xenum))))
 
 ; render-item: XItem -> Image
