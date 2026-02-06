@@ -90,6 +90,9 @@
 
 ;;; Once you have designed the function, run the program like this:
 (define LOCATION "/usr/share/dict/words")
-(define AS-LIST (read-lines LOCATION))
+(define AS-LIST
+  (filter
+   (λ (w) (andmap (λ (c) (member? c LETTERS)) (explode w)))
+   (read-lines LOCATION)))
 (define SIZE (length AS-LIST))
 ;; (play (list-ref AS-LIST (random SIZE)) 10)

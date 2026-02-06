@@ -7,3 +7,4 @@
   Add stuff to `worm-game`, make it nice, refactor (-:
 - 362
   This is done, but the book makes suggestions to make the interpreter better.
+- 396 Done, but we can further enhance the hangman (-:
