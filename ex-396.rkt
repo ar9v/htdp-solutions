@@ -36,14 +36,29 @@
             (if (member? ke LETTERS)
                 (make-hm-state (compare-word the-word (hm-state-word current-status) ke)
                                (hm-state-time current-status))
-                current-status)))
+                current-status))
+
+          ; game-over?: HM-State -> Boolean
+          (define (game-over? s) (or (game-won? s) (game-lost? s)))
+          (define (game-won? s) (equal? (hm-state-word s) the-word))
+          (define (game-lost? s) (= (hm-state-time s) 0))
+
+          ; render-final: HM-Word -> Image
+          (define (render-final w)
+            (overlay/align
+             'center 'top
+             (if (game-won? w)
+                 (text "You won!" FONT-SIZE "green")
+                 (text "Time's up!" FONT-SIZE "red"))
+             (render-word w))))
+
     (implode
      (hm-state-word
       (big-bang (make-hm-state the-guess time-limit) ; HM-State
                 [to-draw render-word]
                 [on-tick tick 1 time-limit]
                 [on-key checked-compare]
-                [stop-when (λ (_w) false) render-final])))))
+                [stop-when game-over? render-final])))))
 
 ; render-word: HM-State -> Image
 (define (render-word s)
@@ -52,10 +67,6 @@
                  (overlay/align 'center 'bottom
                                 (text (implode (hm-state-word s)) FONT-SIZE "black")
                                 BACKGROUND)))
-
-; render-final: HM-Word -> Image
-(define (render-final w)
-  (overlay/align 'center 'top (text "Time's up!" FONT-SIZE "red") (render-word w)))
 
 ; compare-word: HM-Word HM-Word Letter -> HM-Word
 (check-expect (compare-word '() '() "a") '())
