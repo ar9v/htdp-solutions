@@ -9,11 +9,18 @@
 ;;; guessing player has discovered, and the current guess. The function produces `s` with
 ;;; all "_" where the guess revealed a letter.
 
-(define LETTERS
-  (explode "abcdefghijklmnopqrstuvwxyz"))
+(define FONT-SIZE 22)
+(define LETTERS (explode "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"))
+(define SCENE-SIZE (* (/ (length LETTERS) 2) FONT-SIZE))
+
+(define BACKGROUND (empty-scene SCENE-SIZE SCENE-SIZE))
 
 ; An HM-Word is a [List-of Letter or "_"]
 ; interpretation "_" represents a letter to be guessed
+
+(define-struct hm-state [word time])
+; A HM-State is a structure
+;  (make-hm-state HM-Word N)
 
 ; play: HM-Word N -> String
 ; runs a simplistic hangman game, produces the current state
@@ -21,27 +28,38 @@
   (local ((define the-word (explode the-pick))
           (define the-guess (make-list (length the-word) "_"))
 
-          ; do-nothing: HM-Word -> HM-Word
-          (define (do-nothing s) s)
+          ; tick: HM-State -> HM-State
+          (define (tick s) (make-hm-state (hm-state-word s) (sub1 (hm-state-time s))))
 
-          ; checked-compare: HM-Word KeyEvent -> HM-Word
+          ; checked-compare: HM-State KeyEvent -> HM-State
           (define (checked-compare current-status ke)
             (if (member? ke LETTERS)
-                (compare-word the-word current-status ke)
+                (make-hm-state (compare-word the-word (hm-state-word current-status) ke)
+                               (hm-state-time current-status))
                 current-status)))
     (implode
-     (big-bang the-guess ; HM-Word
-               [to-draw render-word]
-               [on-tick do-nothing 1 time-limit]
-               [on-key checked-compare]))))
+     (hm-state-word
+      (big-bang (make-hm-state the-guess time-limit) ; HM-State
+                [to-draw render-word]
+                [on-tick tick 1 time-limit]
+                [on-key checked-compare]
+                [stop-when (λ (_w) false) render-final])))))
 
-; render-word: HM-Word -> Image
-(define (render-word w)
-  (text (implode w) 22 "black"))
+; render-word: HM-State -> Image
+(define (render-word s)
+  (overlay/align 'center 'center
+                 (text (number->string (hm-state-time s)) FONT-SIZE "black")
+                 (overlay/align 'center 'bottom
+                                (text (implode (hm-state-word s)) FONT-SIZE "black")
+                                BACKGROUND)))
+
+; render-final: HM-Word -> Image
+(define (render-final w)
+  (overlay/align 'center 'top (text "Time's up!" FONT-SIZE "red") (render-word w)))
 
 ; compare-word: HM-Word HM-Word Letter -> HM-Word
 (check-expect (compare-word '() '() "a") '())
-(check-expect (compare-word (explode "cow") '("_" "o" "_") "C") '("_" "o" "_"))
+(check-expect (compare-word (explode "cow") '("_" "o" "_") "!") '("_" "o" "_"))
 (check-expect (compare-word (explode "babble") '("_" "a" "_" "_" "_" "e") "b")
               '("b" "a" "b" "b" "_" "e"))
 (check-expect (compare-word (explode "blue") '("b" "l" "u" "_") "r")
@@ -56,4 +74,4 @@
 (define LOCATION "/usr/share/dict/words")
 (define AS-LIST (read-lines LOCATION))
 (define SIZE (length AS-LIST))
-(play (list-ref AS-LIST (random SIZE)) 10)
+;; (play (list-ref AS-LIST (random SIZE)) 10)
