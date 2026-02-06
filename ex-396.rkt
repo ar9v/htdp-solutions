@@ -50,23 +50,24 @@
              (if (game-won? w)
                  (text "You won!" FONT-SIZE "green")
                  (text "Time's up!" FONT-SIZE "red"))
-             (render-word w))))
+             (render-state w))))
 
     (implode
      (hm-state-word
       (big-bang (make-hm-state the-guess time-limit) ; HM-State
-                [to-draw render-word]
+                [to-draw render-state]
                 [on-tick tick 1 time-limit]
                 [on-key checked-compare]
                 [stop-when game-over? render-final])))))
 
 ; render-word: HM-State -> Image
-(define (render-word s)
-  (overlay/align 'center 'center
-                 (text (number->string (hm-state-time s)) FONT-SIZE "black")
-                 (overlay/align 'center 'bottom
-                                (text (implode (hm-state-word s)) FONT-SIZE "black")
-                                BACKGROUND)))
+(define (render-state s)
+  (overlay/align
+   'center 'center
+   (text (number->string (hm-state-time s)) FONT-SIZE "black")
+   (overlay/align
+    'center 'bottom (text (implode (inject " " (hm-state-word s))) FONT-SIZE "black")
+    BACKGROUND)))
 
 ; compare-word: HM-Word HM-Word Letter -> HM-Word
 (check-expect (compare-word '() '() "a") '())
@@ -80,6 +81,12 @@
   (cond [(empty? word) '()]
         [else (cons (if (string=? (first word) guess) guess (first current))
                     (compare-word (rest word) (rest current) guess))]))
+
+(define (inject x l)
+  (cond [(empty? l) '()]
+        [else
+         (cons (first l)
+               (cons x (inject x (rest l))))]))
 
 ;;; Once you have designed the function, run the program like this:
 (define LOCATION "/usr/share/dict/words")
