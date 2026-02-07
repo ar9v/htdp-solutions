@@ -1,0 +1,11 @@
+* Exercise 402
+
+#+begin_quote
+Reread exercise 354. Explain the reasoning behind our hint to think of the given expression
+as an atomic value at first.
+#+end_quote
+
+The hint suggests that because by then we had =subst= available to us. Since =subst= dealt
+with the details of the expression's actual structure, and since its return value was
+a new expression, we could structure our solution as a series of =subst= applications,
+driven by the structure of =da=.
