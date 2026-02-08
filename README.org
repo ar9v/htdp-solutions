@@ -8,3 +8,7 @@
 - 362
   This is done, but the book makes suggestions to make the interpreter better.
 - 396 Done, but we can further enhance the hangman (-:
+- 410
+  =db-union= is kinda inefficient. A slightly better version could use a =merge=-like function,
+  but we'd need a general way to compare tuples, which is a bit more elaborate. Might
+  be a fun replay exercise.
