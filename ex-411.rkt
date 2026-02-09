@@ -1,5 +1,7 @@
 #lang htdp/isl+
 
+(require 2htdp/abstraction)
+
 ;;; Design `join`, a function that consumes two databases: `db-1` and `db-2`. The schema
 ;;; of `db-2` starts with the exact same spec that the schema of `db-1` ends in. The
 ;;; function creates a database from `db-1` by replacing the last cell in each row with
@@ -100,12 +102,9 @@
 ; Given `x` and an `alist`, returns a list of all associations for which
 ; `x` is the key, if any.
 (define (assoc* x alist)
-  (cond [(empty? alist) '()]
-        [else
-         (local [(define res (assoc x alist))]
-           (if (not (false? res))
-               (cons res (assoc* x (remove res alist)))
-               '()))]))
+  (match (assoc x alist)
+    [#false '()]
+    [a (cons a (assoc* x (remove a alist)))]))
 
 ; but-last: [List-of X] -> [List-of X]
 ; Returns a list with all elements of `l` save for the last one.
