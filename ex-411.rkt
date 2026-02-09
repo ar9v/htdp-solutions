@@ -92,19 +92,29 @@
 (define (join db1 db2)
   (local [(define (translate-column row)
             (map (λ (found-row) (append (but-last row) (rest found-row)))
-                 (assoc* (last row) (db-content db2))))
-          (define (but-last l)
-            (cond [(empty? (rest l)) '()]
-                  [else (cons (first l) (but-last (rest l)))]))
-          (define (last l)
-            (cond [(empty? (rest l)) (first l)]
-                  [else (last (rest l))]))
-          (define (assoc* x alist)
-            (cond [(empty? alist) '()]
-                  [else
-                   (local [(define res (assoc x alist))]
-                     (if (not (false? res))
-                         (cons res (assoc* x (remove res alist)))
-                         '()))]))]
+                 (assoc* (last row) (db-content db2))))]
     (make-db (append (db-schema db1) (rest (db-schema db2)))
              (foldr append '() (map translate-column (db-content db1))))))
+
+; assoc*: X [AList X Y] -> [List-of [Association X Y]]
+; Given `x` and an `alist`, returns a list of all associations for which
+; `x` is the key, if any.
+(define (assoc* x alist)
+  (cond [(empty? alist) '()]
+        [else
+         (local [(define res (assoc x alist))]
+           (if (not (false? res))
+               (cons res (assoc* x (remove res alist)))
+               '()))]))
+
+; but-last: [List-of X] -> [List-of X]
+; Returns a list with all elements of `l` save for the last one.
+(define (but-last l)
+  (cond [(or (empty? l) (empty? (rest l))) '()]
+        [else (cons (first l) (but-last (rest l)))]))
+
+; last: [NonEmptyList-of X] -> X
+; Returns the last element in `l`, if any.
+(define (last l)
+  (cond [(empty? (rest l)) (first l)]
+        [else (last (rest l))]))
