@@ -22,12 +22,30 @@
   `(("Present" ,boolean?)
     ("Description" ,string?)))
 
+(define presence-schema-extra
+  `(("Present" ,boolean?)
+    ("Description" ,string?)
+    ("Integer" ,number?)
+    ("Symbol" ,symbol?)))
+
 (define presence-content
   '((#true "presence")
     (#false "absence")))
 
-(define presence-db (make-db presence-schema presence-content))
+(define presence-content-extra
+  '((#true "presence" 1 true)
+    (#false "absence" 0 false)))
+
+(define presence-content-doubles
+  '((#true "presence")
+    (#true "here")
+    (#false "absence")
+    (#false "there")))
+
 (define school-db (make-db school-schema school-content))
+(define presence-db (make-db presence-schema presence-content))
+(define presence-extra-db (make-db presence-schema-extra presence-content-extra))
+(define presence-doubles-db (make-db presence-schema presence-content-doubles))
 
 (define joined-db
   (make-db (append (db-schema school-db) (rest (db-schema presence-db)))
@@ -36,34 +54,12 @@
              ("Carol" 30 "presence")
              ("Dave" 32 "absence"))))
 
-(define presence-schema-extra
-  `(("Present" ,boolean?)
-    ("Description" ,string?)
-    ("Integer" ,number?)
-    ("Symbol" ,symbol?)))
-
-(define presence-content-extra
-  '((#true "presence" 1 true)
-    (#false "absence" 0 false)))
-
-(define presence-extra-db
-  (make-db presence-schema-extra presence-content-extra))
-
 (define joined-extra-db
   (make-db (append (db-schema school-db) (rest (db-schema presence-extra-db)))
            '(("Alice" 35 "presence" 1 true)
              ("Bob" 25 "absence" 0 false)
              ("Carol" 30 "presence" 1 true)
              ("Dave" 32 "absence" 0 false))))
-
-(define presence-content-doubles
-  '((#true "presence")
-    (#true "here")
-    (#false "absence")
-    (#false "there")))
-
-(define presence-doubles-db
-  (make-db presence-schema presence-content-doubles))
 
 (define joined-doubles-db
   (make-db (append (db-schema school-db) (rest (db-schema presence-doubles-db)))
