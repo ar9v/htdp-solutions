@@ -93,8 +93,8 @@
               (db-content joined-doubles-db))
 (define (join db1 db2)
   (local [(define (translate-column row)
-            (map (λ (found-row) (append (but-last row) (rest found-row)))
-                 (assoc* (last row) (db-content db2))))]
+            (for/list [(found (assoc* (last row) (db-content db2)))]
+              (append (but-last row) (rest found))))]
     (make-db (append (db-schema db1) (rest (db-schema db2)))
              (foldr append '() (map translate-column (db-content db1))))))
 
