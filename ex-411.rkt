@@ -36,6 +36,26 @@
              ("Carol" 30 "presence")
              ("Dave" 32 "absence"))))
 
+(define presence-schema-extra
+  `(("Present" ,boolean?)
+    ("Description" ,string?)
+    ("Integer" ,number?)
+    ("Symbol" ,symbol?)))
+
+(define presence-content-extra
+  '((#true "presence" 1 true)
+    (#false "absence" 0 false)))
+
+(define presence-extra-db
+  (make-db presence-schema-extra presence-content-extra))
+
+(define joined-extra-db
+  (make-db (append (db-schema school-db) (rest (db-schema presence-extra-db)))
+           '(("Alice" 35 "presence" 1 true)
+             ("Bob" 25 "absence" 0 false)
+             ("Carol" 30 "presence" 1 true)
+             ("Dave" 32 "absence" 0 false))))
+
 ; join: DB DB -> DB
 ; Given two databases, produces a database where the schema is the union of
 ; both schemas (except the shared Spec), and where each row contains info
@@ -47,6 +67,10 @@
               (map first (db-schema joined-db)))
 (check-expect (db-content (join school-db presence-db))
               (db-content joined-db))
+(check-expect (map first (db-schema (join school-db presence-extra-db)))
+              (map first (db-schema joined-extra-db)))
+(check-expect (db-content (join school-db presence-extra-db))
+              (db-content joined-extra-db))
 (define (join db1 db2)
   (local [(define (translate-column row)
             (append (but-last row)
