@@ -56,6 +56,26 @@
              ("Carol" 30 "presence" 1 true)
              ("Dave" 32 "absence" 0 false))))
 
+(define presence-content-doubles
+  '((#true "presence")
+    (#true "here")
+    (#false "absence")
+    (#false "there")))
+
+(define presence-doubles-db
+  (make-db presence-schema presence-content-doubles))
+
+(define joined-doubles-db
+  (make-db (append (db-schema school-db) (rest (db-schema presence-doubles-db)))
+           '(("Alice" 35 "presence")
+             ("Alice" 35 "here")
+             ("Bob" 25 "absence")
+             ("Bob" 25 "there")
+             ("Carol" 30 "presence")
+             ("Carol" 30 "here")
+             ("Dave" 32 "absence")
+             ("Dave" 32 "there"))))
+
 ; join: DB DB -> DB
 ; Given two databases, produces a database where the schema is the union of
 ; both schemas (except the shared Spec), and where each row contains info
@@ -71,15 +91,24 @@
               (map first (db-schema joined-extra-db)))
 (check-expect (db-content (join school-db presence-extra-db))
               (db-content joined-extra-db))
+(check-expect (db-content (join school-db presence-doubles-db))
+              (db-content joined-doubles-db))
 (define (join db1 db2)
   (local [(define (translate-column row)
-            (append (but-last row)
-                    (rest (assoc (last row) (db-content db2)))))
+            (map (λ (found-row) (append (but-last row) (rest found-row)))
+                 (assoc* (last row) (db-content db2))))
           (define (but-last l)
             (cond [(empty? (rest l)) '()]
                   [else (cons (first l) (but-last (rest l)))]))
           (define (last l)
             (cond [(empty? (rest l)) (first l)]
-                  [else (last (rest l))]))]
+                  [else (last (rest l))]))
+          (define (assoc* x alist)
+            (cond [(empty? alist) '()]
+                  [else
+                   (local [(define res (assoc x alist))]
+                     (if (not (false? res))
+                         (cons res (assoc* x (remove res alist)))
+                         '()))]))]
     (make-db (append (db-schema db1) (rest (db-schema db2)))
-             (map translate-column (db-content db1)))))
+             (foldr append '() (map translate-column (db-content db1))))))
