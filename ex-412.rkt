@@ -1,5 +1,7 @@
 #lang htdp/isl+
 
+(require 2htdp/abstraction)
+
 ;;; Design `inex+`. The function adds two Inex representations of numbers that have the
 ;;; same exponent. The function must be able to deal with inputs that increase the
 ;;; exponent. Furthermore, it must signal its own error if the result is out of range, not
@@ -30,29 +32,21 @@
               (create-inex (round (/ (+ 99 3) 10)) -1 98))
 (check-error (inex+ MAX-POSITIVE (create-inex 1 1 99)))
 (define (inex+ inex1 inex2)
-  (local [(define (normalize-inex i)
-            (local [(define m (inex-mantissa i))
-                    (define s (inex-sign i))
-                    (define e (inex-exponent i))]
-              (cond [(<= m 99) i]
-                    ; (+ s (* s s e)) === (* s (+ 1 (* s e))), which translates to
-                    ; "add 1 to the (signed) exponent, and flip the sign";
-                    ; this way, we can always increment, regardless of sign
-                    [else (make-inex (round (/ m 10)) s (+ s (* s s e)))])))
-          (define m1 (inex-mantissa inex1))
-          (define m2 (inex-mantissa inex2))
-          (define s1 (inex-sign inex1))
-          (define s2 (inex-sign inex2))
-          (define e1 (inex-exponent inex1))
-          (define e2 (inex-exponent inex2))
-          (define normalized-inex
-            (normalize-inex
-             (cond [(< (* s1 e1) (* s2 e2)) (make-inex (+ m1 (* 10 m2)) s1 e1)]
-                   [(= (* s1 e1) (* s2 e2)) (make-inex (+ m1 m2) s1 e1)]
-                   [else (make-inex (+ (* 10 m1) m2) s2 e2)])))]
-    (if (<= (inex-exponent normalized-inex) 99)
-        normalized-inex
-        (error "Error: inexact number addition overflowed!"))))
+  (match (list inex1 inex2)
+    [(list (inex m1 s1 e1) (inex m2 s2 e2))
+     (local [(define (normalize-inex i)
+               (match i
+                 [(inex m s e)
+                  (cond [(<= m 99) i]
+                        [else (make-inex (round (/ m 10)) s (abs (add1 (* s e))))])]))
+             (define normalized-inex
+               (normalize-inex
+                (cond [(< (* s1 e1) (* s2 e2)) (make-inex (+ m1 (* 10 m2)) s1 e1)]
+                      [(= (* s1 e1) (* s2 e2)) (make-inex (+ m1 m2) s1 e1)]
+                      [else (make-inex (+ (* 10 m1) m2) s2 e2)])))]
+       (if (<= (inex-exponent normalized-inex) 99)
+           normalized-inex
+           (error "Error: inexact number addition overflowed!")))]))
 
 ;;; Challenge:
 ;;; Extend `inex+` so that it can deal with inputs whose exponents differ by 1
