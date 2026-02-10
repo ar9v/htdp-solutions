@@ -6,16 +6,8 @@
 ;;; rely on `create-inex` for error checking.
 
 (define-struct inex [mantissa sign exponent])
-; An Inex is a structure:
-;   (make-inex N99 S N99)
-;
-; An S is one of:
-; -- -1
-; -- 1
-;
-; An N99 is an N between 0 and 99 (inclusive)
 
-; N Number N -> Inex
+; create-inex: N Number N -> Inex
 ; makes an instance of Inex after checking the arguments
 (define (create-inex m s e)
   (cond
@@ -29,7 +21,7 @@
 ; Adds two Inex representations.
 ;
 ; Assumptions:
-; -- inex1 and inex2 have the same exponent.
+; -- inex1 and inex2 have the exponents with a difference of at most 1
 (check-expect (inex+ (create-inex 1 1 0) (create-inex 2 1 0))
               (create-inex 3 1 0))
 (check-expect (inex+ (create-inex 3 1 2) (create-inex 99 1 2))
@@ -39,15 +31,25 @@
 (check-error (inex+ MAX-POSITIVE (create-inex 1 1 99)))
 (define (inex+ inex1 inex2)
   (local [(define (normalize-inex i)
-            (local [(define mantissa (inex-mantissa i))]
-              (cond [(<= mantissa 99) i]
-                    [else (make-inex (round (/ mantissa 10))
-                                     (inex-sign i)
-                                     (* sign (add1 (* sign (inex-exponent i)))))])))
-          (define mantissa (+ (inex-mantissa inex1) (inex-mantissa inex2)))
-          (define sign (inex-sign inex1))
-          (define exponent (inex-exponent inex1))
-          (define normalized-inex (normalize-inex (make-inex mantissa sign exponent)))]
+            (local [(define m (inex-mantissa i))
+                    (define s (inex-sign i))
+                    (define e (inex-exponent i))]
+              (cond [(<= m 99) i]
+                    ; (+ s (* s s e)) === (* s (+ 1 (* s e))), which translates to
+                    ; "add 1 to the (signed) exponent, and flip the sign";
+                    ; this way, we can always increment, regardless of sign
+                    [else (make-inex (round (/ m 10)) s (+ s (* s s e)))])))
+          (define m1 (inex-mantissa inex1))
+          (define m2 (inex-mantissa inex2))
+          (define s1 (inex-sign inex1))
+          (define s2 (inex-sign inex2))
+          (define e1 (inex-exponent inex1))
+          (define e2 (inex-exponent inex2))
+          (define normalized-inex
+            (normalize-inex
+             (cond [(< (* s1 e1) (* s2 e2)) (make-inex (+ m1 (* 10 m2)) s1 e1)]
+                   [(= (* s1 e1) (* s2 e2)) (make-inex (+ m1 m2) s1 e1)]
+                   [else (make-inex (+ (* 10 m1) m2) s2 e2)])))]
     (if (<= (inex-exponent normalized-inex) 99)
         normalized-inex
         (error "Error: inexact number addition overflowed!"))))
@@ -57,3 +59,11 @@
 (check-expect
  (inex+ (create-inex 1 1 0) (create-inex 1 -1 1))
  (create-inex 11 -1 1))
+
+(check-expect
+ (inex+ (create-inex 2 -1 2) (create-inex 4 -1 1))
+ (create-inex 42 -1 2))
+
+(check-expect
+ (inex+ (create-inex 4 1 2) (create-inex 5 1 1))
+ (create-inex 45 1 1))
