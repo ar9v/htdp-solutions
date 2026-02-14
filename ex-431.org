@@ -1,0 +1,24 @@
+* Exercise 431
+
+#+begin_quote
+Answer the four key questions for the =bundle= problem and the first three questions for
+the =quick-sort<= problem. How many instances of =generate-problem= are needed?
+#+end_quote
+
+** =bundle=
+1. What is a trivially solvable problem?
+   Bundling a list with no 1Strings.
+2. How are trivial solutions solved?
+   By returning the empty list.
+3. How does the algorithm generate new problems that are more easily solvable than the original one? Is there one new problem that we generate or are there several?
+   We generate one new problem: bundling 1Strings in a list that is short of the first =n= elements of the original list.
+4. Is the solution of the given problem the same as the solution of (one of) the new problems? Or, do we need to combine the solutions to create a solution for the original problem? And, if so, do we need anything from the original problem data?
+   It is not. It is the =cons= of the result of taking the first =n= elements and the result of the new problem. We only need one =generate-problem=.
+
+** =quick-sort<=
+1. What is a trivially solvable problem?
+   Sorting an empty list (also, sorting a one element list).
+2. How are trivial solutions solved?
+   By returning the same list (empty or single-element).
+3. How does the algorithm generate new problems that are more easily solvable than the original one? Is there one new problem that we generate or are there several?
+   It breaks the original list into two new (shorter) lists: the list with smaller elements and the list with larger elements. We therefore need two =generate-problem= calls.
