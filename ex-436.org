@@ -1,0 +1,14 @@
+* Exercise 436
+
+#+begin_quote
+Formulate a termination argument for =food-create= from exercise 432.
+#+end_quote
+
+In =food-create= we use =(random MAX)= to generate new coordinates. The new problem is not
+necessarily smaller, but the trivial case is for the new =Posn= to be different than the
+input. So as long as the input is not =(make-posn 0 0)= and =MAX= is not 1, the algorithm
+terminates.
+
+The reason the algorithm does not terminate when the input is =(make-posn 0 0)= and =MAX= is 1
+is that =(random MAX)= would always produce 0, so the candidate would never be different
+than the input, and the program would therefore never terminate.
