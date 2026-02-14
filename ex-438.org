@@ -1,0 +1,13 @@
+* Exercise 438
+
+#+begin_quote
+In your words: how does =greatest-divisor-<== work? Use the design recipe to find the
+right words. Why does the locally defined =greatest-divisor-<== recur on
+=(min n m)=
+#+end_quote
+
+The function works its way backward from =(min n m)=, checking the number at any given
+recursive step evenly divides both =n= and =m=. The first number which does is the greatest
+common divisor. The starting point is =(min n m)= because, given two numbers, it is
+impossible for them to have a =gcd= that's greater than the smaller of the two; after all,
+dividing a number by a larger number necessarily results in a ratio.
