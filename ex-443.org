@@ -1,0 +1,27 @@
+* Exercise 443
+
+#+begin_quote
+Given the header material for `gcd-structural`, a naive use of the design recipe might
+use the following template or some variant:
+#+end_quote
+
+#+begin_src racket
+  (define (gcd-structural n m)
+    (cond
+      [(and (= n 1) (= m 1)) ...]
+      [(and (> n 1) (= m 1)) ...]
+      [(and (= n 1) (> m 1)) ...]
+      [else
+       (... (gcd-structural (sub1 n) (sub1 m)) ...
+            ... (gcd-structural (sub1 n) m) ...
+            ... (gcd-structural n (sub1 m)) ...)]))
+#+end_src
+
+#+begin_quote
+Why is it impossible to find a divisor with this strategy?
+#+end_quote
+
+Because we need the original values of =n= and =m= to know that we've found the =gcd=!
+Say we use this template: the base cases surely must return 1, since the =gcd= of any
+number and 1 is 1. But then, how do we combine that potential answer with the
+current =n= and =m= in the last =cond= branch, such that we produce the right answer?
