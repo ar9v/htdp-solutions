@@ -21,22 +21,23 @@
 ; generative divides interval in half, the root is in one of the two halves, picks
 ; according to assumption
 (define (find-root f left right)
-  (cond
-    [(<= (- right left) ε) left]
-    [else
-     (local [(define mid (/ (+ left right) 2))
-             (define f@mid (f mid))
-             (define f@l (f left))
-             (define f@r (f right))]
-       (cond
-         [(or (<= f@l 0 f@mid) (<= f@mid 0 f@l))
-          (find-root f left mid)]
-         [(or (<= f@mid 0 f@r) (<= f@r 0 f@mid))
-          (find-root f mid right)]))]))
+  (local [(define (find-root-acc f l r f@l f@r)
+            (cond
+              [(<= (- r l) ε) l]
+              [else
+               (local [(define mid (/ (+ l r) 2))
+                       (define f@mid (f mid))]
+                 (cond
+                   [(or (<= f@l 0 f@mid) (<= f@mid 0 f@l))
+                    (find-root-acc f l mid f@l f@mid)]
+                   [(or (<= f@mid 0 f@r) (<= f@r 0 f@mid))
+                    (find-root-acc f mid r f@mid f@r)]))]))]
+    (find-root-acc f left right (f left) (f right))))
 
 
 ;;; How many recomputations of `(f left)` does this design maximally avoid?
 ;;;
-;;; NOTE: the two additional arguments to this helper function change at each recursive
-;;; stage, but the change is related to the change in the numeric arguments. These
-;;; arguments are so-called `accumulators`, which are the topic of part VI.
+;;; A:
+;;; Suppose we pick an interval for a function such that we always stick with `left`.
+;;; Then we are spared from recomputing `(f left)` 2 times however many steps it takes
+;;; to reach the base case.
