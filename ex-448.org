@@ -1,0 +1,14 @@
+* Exercise 448
+
+#+begin_quote
+The =find-root= algorithm terminates for all (continuous) =f=, =left=, and =right=
+for which the assumption holds. Why? Formulate a termination argument.
+#+end_quote
+
+Say =f= is continuous and the assumption for =left= and =right= holds. Then that means
+=f= /has/ a root, and it /has/ to be between =left= and =right=. Each iteration, the interval
+is cut by half; after =~log_2(n)= steps (for ε = 1), we'll have divided the interval's size
+to a point where =right - left= is smaller than our error. For other values of ε, the
+key thing to keep in mind is that division will always yield a smaller interval size.
+Since the algorithm keeps the ends of the interval on opposite sides of the axis,
+we're guaranteed to not "overshoot", therefore missing the root and looping.
