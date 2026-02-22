@@ -1,0 +1,21 @@
+* Exercise 478
+
+#+begin_quote
+You can also place the first queen in all squares of the top-most row, the right-most
+column, and the bottom-most row. Explain why all of these solutions are just like the
+three scenarios depicted in figure 173.
+#+end_quote
+
+All of those scenarios can be achieved by manipulating the scenarios presented in figure
+173. For example, rotating the first board 90 degrees counter-clockwise places the queen
+in the second column, in the first row. Flipping the second board on its horizontal
+axis gets you the scenario where you've covered the bottom most spot of the right column.
+And so on.
+
+#+begin_quote
+This leaves the central square. Is it possible to place even a second queen after you
+place one on the central square of a 3 by 3 board?
+#+end_quote
+
+It is not. Once you place a queen on the central square, you threaten all remaining
+squares.
