@@ -12,3 +12,5 @@
   =db-union= is kinda inefficient. A slightly better version could use a =merge=-like function,
   but we'd need a general way to compare tuples, which is a bit more elaborate. Might
   be a fun replay exercise.
+- 479
+  Tests could be written with =check-satisfied=
