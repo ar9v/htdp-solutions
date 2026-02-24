@@ -38,32 +38,55 @@
          (for*/and [(qp1 qps) (qp2 qps)]
            (or (equal? qp1 qp2) (not (threatening? qp1 qp2)))))))
 
+; abstract-n-queens:
+;   N [N -> Board] [Board QP -> Board] [Board -> [List-of QP]] -> [Maybe [List-of QP]
+;
+; Returns a list of positions that solve the n-queens problem, if possible
+;
+; Constraints: `add-queen` and `find-open-spots` must be compatible with whatever
+; representation of a board `board0` creates.
+(check-satisfied (abstract-n-queens
+                  4
+                  available/board0
+                  available/add-queen
+                  available/find-open-spots)
+                 (n-queens-solution? 4))
+(check-satisfied (abstract-n-queens
+                  5
+                  available/board0
+                  available/add-queen
+                  available/find-open-spots)
+                 (n-queens-solution? 5))
+(define (abstract-n-queens n board0 add-queen find-open-spots)
+  (local [(define (abstract-place-queens a-board n)
+            (cond [(zero? n) '()]
+                  [else
+                   (for/or [(p (find-open-spots a-board))]
+                     (local [(define candidate
+                               (abstract-place-queens (add-queen a-board p) (sub1 n)))]
+                       (if (list? candidate) (cons p candidate) #false)))]))]
+    (abstract-place-queens (board0 n) n)))
+
+
 (check-satisfied (n-queens 4) (n-queens-solution? 4))
 (check-satisfied (n-queens 5) (n-queens-solution? 5))
 (define (n-queens n)
-  (place-queens (board0 n) n))
+  (abstract-n-queens n available/board0 available/add-queen available/find-open-spots))
 
-; place-queens: Board N -> [Maybe [List-of QP]]
-; places n queens on board; otherwise returns #false
-(define (place-queens a-board n)
-  (cond [(zero? n) '()]
-        [else (for/or [(p (find-open-spots a-board))]
-                (local [(define candidate (place-queens (add-queen a-board p) (sub1 n)))]
-                  (if (list? candidate) (cons p candidate) #false)))]))
-
-; board0: N -> Board
-; creates the initial n by n board
-(define (board0 n)
+; available/board0: N -> Board
+; creates the initial n by n board, represented as a list of spots that are still
+; available
+(define (available/board0 n)
   (for*/list [(i n) (j n)] (make-posn i j)))
 
-; add-queen: Board QP -> Board
+; available/add-queen: Board QP -> Board
 ; places a queen at `qp` on `a-board`
-(define (add-queen a-board qp)
+(define (available/add-queen a-board qp)
   (filter (λ (p) (not (threatening? qp p))) (remove qp a-board)))
 
-; find-open-spots: Board -> [List-of QP]
+; available/find-open-spots: Board -> [List-of QP]
 ; finds spots where it is still safe to place a queen
-(define (find-open-spots a-board)
+(define (available/find-open-spots a-board)
   a-board)
 
 ; threatening?: QP QP -> Boolean
