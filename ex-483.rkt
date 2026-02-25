@@ -18,9 +18,17 @@
 ;;; of a Board. Abstract your solution to exercise 482 and confirm that it works with
 ;;; any of your data representations of a Board.
 
-; A Board is a [List-of QP]
+; A Board can be
+;   -- a [List-of QP] that represents free spaces
+;   -- a [List-of QP] that represents taken spaces
+;   -- a [List-of Square]
 ;
-; Interpretation: A Board contains all available places
+; Square is a struct
+;   (make-grid-square N N Boolean)
+;
+; interpretation: (make-grid-square x y threatened?) represents a board square in logical
+; coordinate (`x`, `y`) which may be `threatened?`
+(define-struct grid-square [x y threatened?])
 
 (define QUEEN (bitmap/file "images/queen.png"))
 
@@ -58,6 +66,12 @@
                   (taken/make-find-open-spot-checker 4))
                  (n-queens-solution? 4))
 (check-satisfied (abstract-n-queens
+                  4
+                  grid/board0
+                  grid/add-queen
+                  grid/find-open-spots)
+                 (n-queens-solution? 4))
+(check-satisfied (abstract-n-queens
                   5
                   available/board0
                   available/add-queen
@@ -69,6 +83,12 @@
                   taken/add-queen
                   (taken/make-find-open-spot-checker 5))
                  (n-queens-solution? 5))
+(check-satisfied (abstract-n-queens
+                  5
+                  grid/board0
+                  grid/add-queen
+                  grid/find-open-spots)
+                 (n-queens-solution? 5))
 (define (abstract-n-queens n board0 add-queen find-open-spots)
   (local [(define (abstract-place-queens a-board n)
             (cond [(zero? n) '()]
@@ -79,7 +99,6 @@
                        (if (list? candidate) (cons p candidate) #false)))]))]
     (abstract-place-queens (board0 n) n)))
 
-
 (check-satisfied (n-queens 4) (n-queens-solution? 4))
 (check-satisfied (n-queens 5) (n-queens-solution? 5))
 (define (n-queens n)
@@ -88,8 +107,7 @@
 ; available/board0: N -> Board
 ; creates the initial n by n board, represented as a list of spots that are still
 ; available
-(define (available/board0 n)
-  (for*/list [(i n) (j n)] (make-posn i j)))
+(define (available/board0 n) (for*/list [(i n) (j n)] (make-posn i j)))
 
 ; available/add-queen: Board QP -> Board
 ; places a queen at `qp` on `a-board`
@@ -98,18 +116,15 @@
 
 ; available/find-open-spots: Board -> [List-of QP]
 ; finds spots where it is still safe to place a queen
-(define (available/find-open-spots a-board)
-  a-board)
+(define (available/find-open-spots a-board) a-board)
 
 ; taken/board0: N -> Board
 ; creates the initial n by n board, represented as a list of taken spots
-(define (taken/board0 _n)
-  '())
+(define (taken/board0 _n) '())
 
 ; taken/add-queen: Board QP -> Board
 ; places a queen at `qp` on `a-board`
-(define (taken/add-queen a-board qp)
-  (cons qp a-board))
+(define (taken/add-queen a-board qp) (cons qp a-board))
 
 ; taken/make-find-open-spot-checker: N -> [Board -> [List-of QP]]
 ; Given `n` produces a function that uses `taken/find-open-spots` to
@@ -134,6 +149,30 @@
     (foldr (λ (queen posns) (filter (λ (p) (not (threatening? queen p))) posns))
            universe
            a-board)))
+
+; grid/board0: N -> Board
+; Given `n` creates an n by n representation of a board.
+(define (grid/board0 n)
+  (for*/list [(i n) (j n)] (make-grid-square i j #false)))
+
+; grid/add-queen: Board QP -> Board
+; places a queen at `qp` on `a-board`
+(define (grid/add-queen a-board qp)
+  (map (λ (sq)
+         (if (threatening? qp (grid-square->posn sq))
+             (make-grid-square (grid-square-x sq) (grid-square-y sq) #true)
+             sq))
+       a-board))
+
+; grid/find-open-spots: Board -> [List-of QP]
+; finds spots where it is still safe to place a queen
+(define (grid/find-open-spots a-board)
+  (map grid-square->posn (filter (λ (sq) (not (grid-square-threatened? sq))) a-board)))
+
+; grid-square->posn: Square -> Posn
+; Transforms a Square `sq` into a Posn
+(define (grid-square->posn sq)
+  (make-posn (grid-square-x sq) (grid-square-y sq)))
 
 ; threatening?: QP QP -> Boolean
 ; #true if queens placed at qp1 and qp2 would threaten each other.
