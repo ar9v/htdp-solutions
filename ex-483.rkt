@@ -52,10 +52,22 @@
                   available/find-open-spots)
                  (n-queens-solution? 4))
 (check-satisfied (abstract-n-queens
+                  4
+                  taken/board0
+                  taken/add-queen
+                  (taken/make-find-open-spot-checker 4))
+                 (n-queens-solution? 4))
+(check-satisfied (abstract-n-queens
                   5
                   available/board0
                   available/add-queen
                   available/find-open-spots)
+                 (n-queens-solution? 5))
+(check-satisfied (abstract-n-queens
+                  5
+                  taken/board0
+                  taken/add-queen
+                  (taken/make-find-open-spot-checker 5))
                  (n-queens-solution? 5))
 (define (abstract-n-queens n board0 add-queen find-open-spots)
   (local [(define (abstract-place-queens a-board n)
@@ -88,6 +100,40 @@
 ; finds spots where it is still safe to place a queen
 (define (available/find-open-spots a-board)
   a-board)
+
+; taken/board0: N -> Board
+; creates the initial n by n board, represented as a list of taken spots
+(define (taken/board0 _n)
+  '())
+
+; taken/add-queen: Board QP -> Board
+; places a queen at `qp` on `a-board`
+(define (taken/add-queen a-board qp)
+  (cons qp a-board))
+
+; taken/make-find-open-spot-checker: N -> [Board -> [List-of QP]]
+; Given `n` produces a function that uses `taken/find-open-spots` to
+; produce a list of candidates for available squares.
+;
+; NOTE: The exercise asks to consider the possibility of thinking "a Board contains the
+;       list of positions where a queen has been placed". It _doesn't_ say it's necessarily
+;       a [List-of QP], it may as well be a struct. I thought it'd be interesting to try
+;       to take it as literally as possible. Calling `abstract-n-queens` with this is
+;       clunky (and liable to errors, if we mix up the numbers), but the contract _is_
+;       respected.
+(define (taken/make-find-open-spot-checker n)
+  (λ (a-board) (taken/find-open-spots a-board n)))
+
+; taken/find-open-spots: Board -> [List-of QP]
+; finds spots where it is still safe to place a queen
+;
+; NOTE: While `universe` is basically `available/board0`, the idea here is that both
+;       representations remain separated.
+(define (taken/find-open-spots a-board n)
+  (local [(define universe (for*/list [(i n) (j n)] (make-posn i j)))]
+    (foldr (λ (queen posns) (filter (λ (p) (not (threatening? queen p))) posns))
+           universe
+           a-board)))
 
 ; threatening?: QP QP -> Boolean
 ; #true if queens placed at qp1 and qp2 would threaten each other.
