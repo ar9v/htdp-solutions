@@ -1,0 +1,13 @@
+* Exercise 486
+
+#+begin_quote
+In the first subsection, we stated that the function $f(n) = n^2 + n$ belongs to the class
+$O(n^2)$. Determine the pair of numbers $c$ and $bigEnough$ that verify this claim.
+#+end_quote
+
+One such combination is $c = 2$ and $bigEnough = 1$.
+
+1. We start with $1 <= n_0$
+2. We can then add $n_0$ to both sides, $1 + n_0 <= 2n_0$
+3. Then, we can multiply by $n_0$, $n_0(1 + n_0) <= 2n_0^2$ ...
+4. ...which we can simplify to $n_0 + n_0^2 <= 2n_0^2$
