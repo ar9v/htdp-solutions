@@ -1,0 +1,11 @@
+* Exercise 493
+
+#+begin_quote
+Argue that, in the terminology of intermezzo 5, =invert= consumes $O(n^2)$ time when the
+given list consists of $n$ items.
+#+end_quote
+
+For each recursive call in =invert=, we must call =add-as-last=, which itself processes the
+list. Roughly speaking, the sum of all the steps in a given call to =invert= is the sum
+from 0 to $n - 1$ of what =add-as-last= takes, which is $n$. That gives an abstract time of
+$\frac{1}{2} n(n - 1)$ (established in intermezzo 5), which is $O(n^2)$.
