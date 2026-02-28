@@ -1,0 +1,13 @@
+* Exercise 494
+
+#+begin_quote
+Does the insertion =sort>= function from chapter 11.3 need an accumulator? If so, why? If
+not, why not?
+#+end_quote
+
+It can't really take advantage of an accumulator. Say we accumulate the list of sorted
+items: if the items to be sorted are sorted in ascending order, =insert= will take on
+the order of $n$ steps to add a candidate anyways.
+
+(It /does/ help with space, though, since we the recursive call to =sort>= winds up being
+a tail call, but that's another matter)
