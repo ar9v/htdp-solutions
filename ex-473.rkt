@@ -1,7 +1,7 @@
 #lang htdp/isl+
 
 ;;; Test `find-path` on 'B, 'C, and the graph in figure 170. Also use `test-on-all-nodes`
-;;; from exercise 472.on this graph.
+;;; from exercise 472 on this graph.
 ;;;
 ;;; `(find-graph 'B 'C cyclic-graph)` succeeds, since the path is found before a cycle
 ;;; occurs. `test-on-all-nodes` does hang, however.
