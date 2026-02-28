@@ -25,3 +25,16 @@
 ;;; Not really, for the same reasons outlined in ex-499.rkt: to count how many elements
 ;;; there are in a list, we _have_ to go through all of them. The regular versions of
 ;;; these functions weren't re-processing their intermediate lists.
+
+
+;; When you evaluate `(how-many some-non-empty-list)` by hand, `n` applications of `add1`
+;; are pending by the time the function reaches '() —where `n` is the number of items on
+;; the list. Computer scientists sometimes say that `how-many` needs `O(n)` space to
+;; represent these pending function applications.
+;;
+;; Does the accumulator reduce the amount of space needed to compute the result?
+;;
+;; A:
+;; Yes! Since we're immediately evaluating `add1` so that it can be used as an argument
+;; to the recursive call of our accumulator-style function, we no longer have pending
+;; calls.
