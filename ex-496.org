@@ -1,0 +1,7 @@
+* Exercise 496
+
+#+begin_quote
+What should the value of a be when $n0$ is 10 and $n$ is 8?
+#+end_quote
+
+The value should be 90 ($10 \times 9$, since the range excludes $n$)
