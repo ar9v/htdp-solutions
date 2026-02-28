@@ -1,0 +1,7 @@
+* Exercise 488
+
+#+begin_quote
+Compare $f(n) = nlog(n)$ and $g(n) = n^2$. Does $f$ belong to $O(g)$ or $g$ to $O(f)$?
+#+end_quote
+
+$f$ belongs to $O(g)$
