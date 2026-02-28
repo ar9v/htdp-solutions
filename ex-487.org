@@ -1,0 +1,28 @@
+* Exercise 487
+
+#+begin_quote
+Consider the functions $f(n) = 2^n$ and $g(n) = 1000n$. Show that $g$ belongs to $O(f)$,
+which means that $f$ is, abstractly speaking, more (or at least equally) expensive than
+$g$. If the input size is guaranteed to be between 3 and 12, which function is better?
+#+end_quote
+
+** Part 1
+Let's say we choose $bigEnough = 1$ and $c = 1000$
+
+1. $1 <= n_0$
+2. $1 <= 2^ {n_0}$ is also true, because exponentiation is closed in the positive numbers.
+3. $n <= 2^ {n_0}$ can be proven by induction, using 2 as the base case:
+   1. Say $k <= 2^k$ holds for $1 <= k$, does it hold for $k + 1 <= 2^ {k+1}$?
+   2. $2^ {k+1} = 2 * 2^k = 2^k + 2^k$
+   3. Since $k$ is at most $2^k$, $k + 2^k$ should also be at most $2^k + 2^k$
+   4. But also, since $1 <= k$, $2^k$ is /at least/ 1, so substituting in $2^k + 2^k$
+   5. It holds true that $k + 1 <= 2^ {k+1}$
+4. If we multiply both sides by 1000, we get $1000n <= 1000 * 2^n$
+5. Or, $g(n) <= c2^n$
+
+It is also possible to have $c = 1$ and $n = 14$. The former is somewhat intuitive,
+because you can simply divide 2000 ($g(n)$ for $n = 1$) by 2. Tabulation is also
+helpful (since $f(n)$ grows pretty fast).
+
+** Part 2
+If the input size is guaranteed to be between 3 and 12, then $f$ is better!
