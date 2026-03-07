@@ -8,7 +8,7 @@
 /out.dat
 
 # Support .txt files for Exercise 31.
-/ex-031-*.txt
+/ex-*.txt
 
 /ttt.txt
 /ttt.dat
