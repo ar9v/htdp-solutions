@@ -14,6 +14,7 @@
 ;;; and to write these lines to `out-f`.
 
 (define TEST-IN-F "ex-510.in.txt")
+(define TEST-OUT-F "ex-510.out.txt")
 
 ; Case 1: We split before we've covered a full word
 (define split-2-result
@@ -33,13 +34,13 @@
 ; Formats the context of `in-f` into lines of length `len` and writes them to `out-f`
 ;
 ; Constraints: `in-f` is the name of a file that exists.
-(check-expect (read-lines (fmt 2 TEST-IN-F "ex-510.out.txt"))
+(check-expect (read-lines (fmt 2 TEST-IN-F TEST-OUT-F))
               split-2-result)
-(check-expect (read-lines (fmt 7 TEST-IN-F "ex-510.out.txt"))
+(check-expect (read-lines (fmt 7 TEST-IN-F TEST-OUT-F))
               split-7-result)
-(check-expect (read-lines (fmt 10 TEST-IN-F "ex-510.out.txt"))
+(check-expect (read-lines (fmt 10 TEST-IN-F TEST-OUT-F))
               split-10-result)
-(check-expect (read-lines (fmt 26 TEST-IN-F "ex-510.out.txt"))
+(check-expect (read-lines (fmt 26 TEST-IN-F TEST-OUT-F))
               split-26-result)
 (define (fmt len in-f out-f)
   (local [; split:
