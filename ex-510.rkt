@@ -80,11 +80,11 @@
 
           (define (fmt/line/beg n cs word line lines)
             (cond [(empty? cs) (fmt/a n cs word line lines)]
-                  [else
-                   (local [(define no-leading-ws (drop-while string-whitespace? cs))]
+                  [else (local [(define no-leading-ws (drop-while string-whitespace? cs))]
                      (fmt/a n no-leading-ws word line lines))]))
 
-          (define (add-word w l) (cons (implode (reverse w)) l))
+          (define (word->string w) (implode (reverse w)))
+          (define (add-word w l) (cons (word->string w) l))
           (define (add-line l ls) (cons (reverse l) ls))
 
           (define chars (read-1strings in-f))
