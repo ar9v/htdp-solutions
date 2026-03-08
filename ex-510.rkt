@@ -58,13 +58,11 @@
                   [(and (zero? n) (string-whitespace? (first cs)))
                    (split len (rest cs) '() '() (add-line (add-word word line) lines))]
                   [(zero? n)
-                   (if (<= (- len (length word)) 0)
-                       (split len cs word line lines)
-                       (split (- len (length word))
-                              cs
-                              word
-                              '()
-                              (add-line line lines)))]
+                   (split len
+                          (append (reverse word) cs)
+                          '()
+                          '()
+                          (add-line line lines))]
                   [(string-whitespace? (first cs))
                    (split (sub1 n)
                           (rest cs)
