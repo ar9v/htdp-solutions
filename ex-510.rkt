@@ -43,10 +43,13 @@
 (check-expect (read-lines (fmt 26 TEST-IN-F TEST-OUT-F))
               split-26-result)
 (define (fmt len in-f out-f)
-  (local [; split:
-          ;   N [List-of 1String] [List-of 1String] [List-of String]
-          ;      [List-of [List-of String]] -> [List-of [List-of String]]
-          (define (split n cs word line lines)
+  (local [; split: N [List-of 1String] Word Line [List-of Line] -> [List-of Line]
+          ;
+          ; a Word is a [List-of 1String]
+          ; interpretation: a list '("r" "a" "c") represents the word "car"
+          ;
+          ; a Line is a [List-of String]
+          (define (fmt/a n cs word line lines)
             (cond [(empty? cs) (reverse (add-line (add-word word line) lines))]
                   [(and (zero? n) (empty? line))
                    (local [(define b-a (split/list cs string-whitespace?))
@@ -54,28 +57,38 @@
                            (define after (second b-a))
                            (define new-word (append (reverse before) word))
                            (define new-line (add-word new-word line))]
-                     (split len after '() '() (add-line new-line lines)))]
+                     (fmt/line/beg len after '() '() (add-line new-line lines)))]
                   [(and (zero? n) (string-whitespace? (first cs)))
-                   (split len (rest cs) '() '() (add-line (add-word word line) lines))]
+                   (fmt/line/beg len
+                                 (rest cs)
+                                 '()
+                                 '()
+                                 (add-line (add-word word line) lines))]
                   [(zero? n)
-                   (split len
-                          (append (reverse word) cs)
-                          '()
-                          '()
-                          (add-line line lines))]
+                   (fmt/line/beg len
+                                 (append (reverse word) cs)
+                                 '()
+                                 '()
+                                 (add-line line lines))]
                   [(string-whitespace? (first cs))
-                   (split (sub1 n)
+                   (fmt/a (sub1 n)
                           (rest cs)
                           '()
                           (add-word word line)
                           lines)]
-                  [else (split (sub1 n) (rest cs) (cons (first cs) word) line lines)]))
+                  [else (fmt/a (sub1 n) (rest cs) (cons (first cs) word) line lines)]))
+
+          (define (fmt/line/beg n cs word line lines)
+            (cond [(empty? cs) (fmt/a n cs word line lines)]
+                  [else
+                   (local [(define no-leading-ws (drop-while string-whitespace? cs))]
+                     (fmt/a n no-leading-ws word line lines))]))
 
           (define (add-word w l) (cons (implode (reverse w)) l))
           (define (add-line l ls) (cons (reverse l) ls))
 
           (define chars (read-1strings in-f))
-          (define lines (split len chars '() '() '()))
+          (define lines (fmt/line/beg len chars '() '() '()))
           (define out-s (string-join (map (λ (l) (string-join l " ")) lines) "\n"))]
     (write-file out-f out-s)))
 
@@ -94,3 +107,9 @@
                   [(pred (first lp)) (list (reverse before) (rest lp))]
                   [else (split/a (rest lp) (cons (first lp) before))]))]
     (split/a l '())))
+
+; drop-while: [X -> Boolean] [List-of X] -> [List-of X]
+(define (drop-while pred l)
+  (cond [(empty? l) '()]
+        [(not (pred (first l))) l]
+        [else (drop-while pred (rest l))]))
