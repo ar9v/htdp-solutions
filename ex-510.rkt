@@ -24,7 +24,7 @@
 (define split-7-result split-2-result)
 
 ; Case 3: We split after two words
-(define split-10-result '("The quick" "brown fox" "jumps" "over the" "lazy dogs"))
+(define split-10-result '("The quick" "brown fox" "jumps over" "the lazy" "dogs"))
 
 ; Case 4: N spans multiple lines
 (define split-26-result
@@ -48,6 +48,15 @@
           ;      [List-of [List-of String]] -> [List-of [List-of String]]
           (define (split n cs word line lines)
             (cond [(empty? cs) (reverse (add-line (add-word word line) lines))]
+                  [(and (zero? n) (empty? line))
+                   (local [(define b-a (split/list cs string-whitespace?))
+                           (define before (first b-a))
+                           (define after (second b-a))
+                           (define new-word (append (reverse before) word))
+                           (define new-line (add-word new-word line))]
+                     (split len after '() '() (add-line new-line lines)))]
+                  [(and (zero? n) (string-whitespace? (first cs)))
+                   (split len (rest cs) '() '() (add-line (add-word word line) lines))]
                   [(zero? n)
                    (if (<= (- len (length word)) 0)
                        (split len cs word line lines)
@@ -79,3 +88,11 @@
   (cond [(empty? strs) ""]
         [(empty? (rest strs)) (first strs)]
         [else (string-append (first strs) with (string-join (rest strs) with))]))
+
+; split/list: [List-of X] [X -> Boolean] -> [List-of [List-of X]]
+(define (split/list l pred)
+  (local [(define (split/a lp before)
+            (cond [(empty? lp) (list (reverse before) '())]
+                  [(pred (first lp)) (list (reverse before) (rest lp))]
+                  [else (split/a (rest lp) (cons (first lp) before))]))]
+    (split/a l '())))
