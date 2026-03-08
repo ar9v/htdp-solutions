@@ -47,30 +47,25 @@
           ;   N [List-of 1String] [List-of 1String] [List-of String]
           ;      [List-of [List-of String]] -> [List-of [List-of String]]
           (define (split n cs word line lines)
-            (cond [(empty? cs)
-                   (reverse (cons (reverse (cons (implode (reverse word)) line)) lines))]
+            (cond [(empty? cs) (reverse (add-line (add-word word line) lines))]
                   [(zero? n)
                    (if (<= (- len (length word)) 0)
-                       (split len
-                              cs
-                              word
-                              line
-                              lines)
+                       (split len cs word line lines)
                        (split (- len (length word))
                               cs
                               word
                               '()
-                              (cons (reverse line) lines)))]
-                  [else
-                   (local [(define f (first cs))]
-                     (cond [(string-whitespace? f)
-                            (split (sub1 n)
-                                   (rest cs)
-                                   '()
-                                   (cons (implode (reverse word)) line)
-                                   lines)]
-                           [else
-                            (split (sub1 n) (rest cs) (cons f word) line lines)]))]))
+                              (add-line line lines)))]
+                  [(string-whitespace? (first cs))
+                   (split (sub1 n)
+                          (rest cs)
+                          '()
+                          (add-word word line)
+                          lines)]
+                  [else (split (sub1 n) (rest cs) (cons (first cs) word) line lines)]))
+
+          (define (add-word w l) (cons (implode (reverse w)) l))
+          (define (add-line l ls) (cons (reverse l) ls))
 
           (define chars (read-1strings in-f))
           (define lines (split len chars '() '() '()))
