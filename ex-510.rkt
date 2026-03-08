@@ -63,7 +63,7 @@
                               (cons (reverse line) lines)))]
                   [else
                    (local [(define f (first cs))]
-                     (cond [(or (string=? f " ") (string=? f "\n"))
+                     (cond [(string-whitespace? f)
                             (split (sub1 n)
                                    (rest cs)
                                    '()
