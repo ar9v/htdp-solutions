@@ -1,0 +1,23 @@
+* Exercise 511
+
+#+begin_quote
+Explain the scope of each binding occurrence in the above examples. Draw arrows from the
+bound to the binding occurrences.
+#+end_quote
+
+- =(λ (x) x)= has one binding occurrence, the $x$ in the lambda parameter list. There's only
+  one bound occurrence, the lambda's result.
+- =(λ (x) y)= has one binding occurrence, the $x$ in the lambda parameter list. There are no
+  bound occurrences, however, since the lambda expression always returns $y$. Without
+  extra context, we say that $y$ is /free/.
+- =(λ (y) (λ (x) y))= has two binding occurrences, one for $y$ and one for $x$. There's only
+  bound occurrence, that of $y$.
+- =((λ (x) x) (λ (x) x))= has two binding occurrences, both for each $x$ in each expression.
+  This is an application. The first lambda expression binds $x$ to the identity function
+  on the right.
+- =((λ (x) (x x)) (λ (x) (x x)))= has two binding occurrences, both for each $x$ in each
+  expression. This is an application; the first lambda expression binds $x$ to the
+  lambda expression on the right, and applies it to itself.
+- =(((λ (y) (λ (x) y)) (λ (z) z)) (λ (w) w))= has four binding occurrences: for $y$, $x$, $z$, and
+  $w$. Each occurrence's scope is its defining lambda expression (though $x$ has no
+  bound occurrences).
