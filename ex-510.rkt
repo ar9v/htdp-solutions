@@ -13,8 +13,42 @@
 ;;; `in-f`, to arrange these words in the given order into lines of maximal width `w`,
 ;;; and to write these lines to `out-f`.
 
+; lines->string: [List-of Line] -> String
+(define (lines->string ls)
+  (string-join (map (λ (l) (string-join l " ")) ls) "\n"))
+
+; string-join: [List-of String] String -> String
+(check-expect (string-join (read-lines TEST-IN-F) "\n")
+              "The quick brown fox\njumps over\nthe lazy\ndogs")
+(define (string-join strs with)
+  (cond [(empty? strs) ""]
+        [(empty? (rest strs)) (first strs)]
+        [else (string-append (first strs) with (string-join (rest strs) with))]))
+
 (define TEST-IN-F "ex-510.in.txt")
 (define TEST-OUT-F "ex-510.out.txt")
+
+(define GENERATED-IN-F "ex-510.gen.txt")
+(define GENERATED-OUT-F "ex-510.gen.out.txt")
+
+(define (gen-word n) (implode (make-list n "a")))
+
+(define (gen-line word-count max-word-size)
+  (build-list word-count (λ (_i) (gen-word (random max-word-size)))))
+
+(define (gen-lines line-count max-line-length max-word-size)
+  (build-list line-count
+              (λ (_i) (gen-line (random max-line-length) max-word-size))))
+
+(define (gen-file out-f line-count max-line-length max-word-size)
+  (local [(define lines (gen-lines line-count max-line-length max-word-size))
+          (define as-string (lines->string lines))]
+    (write-file out-f as-string)))
+
+(define GEND-LINES-COUNT 50)
+(define GEND-LINE-LENGTH 50)
+(define GEND-WORD-SIZE 20)
+(gen-file GENERATED-IN-F GEND-LINES-COUNT GEND-LINE-LENGTH GEND-WORD-SIZE)
 
 ; Case 1: We split before we've covered a full word
 (define split-2-result
@@ -42,6 +76,8 @@
               split-10-result)
 (check-expect (read-lines (fmt 26 TEST-IN-F TEST-OUT-F))
               split-26-result)
+(check-satisfied (fmt 15 GENERATED-IN-F GENERATED-OUT-F)
+                 (lambda (out) (formatted? out 15)))
 (define (fmt len in-f out-f)
   (local [; split: N [List-of 1String] Word Line [List-of Line] -> [List-of Line]
           ;
@@ -81,7 +117,7 @@
           (define (fmt/line/beg n cs word line lines)
             (cond [(empty? cs) (fmt/a n cs word line lines)]
                   [else (local [(define no-leading-ws (drop-while string-whitespace? cs))]
-                     (fmt/a n no-leading-ws word line lines))]))
+                          (fmt/a n no-leading-ws word line lines))]))
 
           (define (word->string w) (implode (reverse w)))
           (define (add-word w l) (cons (word->string w) l))
@@ -91,14 +127,6 @@
           (define lines (fmt/line/beg len chars '() '() '()))
           (define out-s (string-join (map (λ (l) (string-join l " ")) lines) "\n"))]
     (write-file out-f out-s)))
-
-; string-join: [List-of String] String -> String
-(check-expect (string-join (read-lines TEST-IN-F) "\n")
-              "The quick brown fox\njumps over\nthe lazy\ndogs")
-(define (string-join strs with)
-  (cond [(empty? strs) ""]
-        [(empty? (rest strs)) (first strs)]
-        [else (string-append (first strs) with (string-join (rest strs) with))]))
 
 ; split/list: [List-of X] [X -> Boolean] -> [List-of [List-of X]]
 (define (split/list l pred)
@@ -113,3 +141,11 @@
   (cond [(empty? l) '()]
         [(not (pred (first l))) l]
         [else (drop-while pred (rest l))]))
+
+; NOTE: This is a weak constraint. For example, this is satisfied by placing each word
+; of the text on a separate line.
+(define (formatted? out-f n)
+  (local [(define lines (read-lines out-f))]
+    (andmap (λ (l) (or (<= (string-length l) n)
+                       (not (string-contains? " " l))))
+            lines)))

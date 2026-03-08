@@ -17,4 +17,5 @@
 - 483
   It'd be fun to get all possible n-queens solutions and animate going through them
 - 510
-  This still has unresolved edge cases, and could be better written
+  This still has unresolved edge cases, and could be better written. Also, `check-satisfied`
+  test would be nice.
