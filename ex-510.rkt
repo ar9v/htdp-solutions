@@ -95,24 +95,16 @@
                            (define new-line (add-word new-word line))]
                      (fmt/line/beg len after '() '() (add-line new-line lines)))]
                   [(and (zero? n) (string-whitespace? (first cs)))
-                   (fmt/line/beg len
-                                 (rest cs)
-                                 '()
-                                 '()
-                                 (add-line (add-word word line) lines))]
+                   (fmt/line/beg
+                    len (rest cs) '() '() (add-line (add-word word line) lines))]
                   [(zero? n)
-                   (fmt/line/beg len
-                                 (append (reverse word) cs)
-                                 '()
-                                 '()
-                                 (add-line line lines))]
+                   (fmt/line/beg
+                    len (append (reverse word) cs) '() '() (add-line line lines))]
                   [(string-whitespace? (first cs))
-                   (fmt/a (sub1 n)
-                          (rest cs)
-                          '()
-                          (add-word word line)
-                          lines)]
-                  [else (fmt/a (sub1 n) (rest cs) (cons (first cs) word) line lines)]))
+                   (fmt/a
+                    (sub1 n) (rest cs) '() (add-word word line) lines)]
+                  [else
+                   (fmt/a (sub1 n) (rest cs) (cons (first cs) word) line lines)]))
 
           (define (fmt/line/beg n cs word line lines)
             (cond [(empty? cs) (fmt/a n cs word line lines)]
@@ -146,6 +138,5 @@
 ; of the text on a separate line.
 (define (formatted? out-f n)
   (local [(define lines (read-lines out-f))]
-    (andmap (λ (l) (or (<= (string-length l) n)
-                       (not (string-contains? " " l))))
+    (andmap (λ (l) (or (<= (string-length l) n) (not (string-contains? " " l))))x
             lines)))
