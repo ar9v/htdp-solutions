@@ -1,0 +1,20 @@
+* Exercise 518
+
+#+begin_quote
+Argue that =our-cons= takes a constant amount of time to compute its result, regardless of
+the size of its input.
+#+end_quote
+
+#+begin_src racket
+  (define (our-cons f r)
+    (cond [(empty? r) (make-cpair 1 f r)]
+          [(cpair? r) (make-cpair (+ (cpair-count r) 1) f r)]
+          [else (error "our-cons: expected a list, got " r)]))
+#+end_src
+
+In each branch, we call a single operation which doesn't require recurring and that we can
+assume takes constant time: =make-cpair= for the first two branches and =error= for the last
+branch. In the first branch, =make-cpair= simply specifies =1= as the count, which evaluates
+to itself. In the second branch, it uses the =cpair-count= of =r=, its second argument. Since
+that count is, however, just an accessor, its a constant time operation and thus the
+whole call is constant time.
