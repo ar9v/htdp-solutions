@@ -1,0 +1,13 @@
+* Exercise 519
+
+#+begin_quote
+Is it acceptable to impose the extra cost on =cons= for all programs to turn =length= into a
+constant-time function?
+#+end_quote
+
+Maybe not wholesale, since, as the book states, there are a multitude of examples in which
+we use =cons= without ever needing to compute the =length= of the result. However, it /is/
+a useful structure to have, separately. Consider a program that is "read-heavy": if
+we know beforehand that we'll take on the upfront cost of creating the structure once and
+that the bulk of the program will consist of leveraging =length=, making =cons= more
+expensive might be worth it.
