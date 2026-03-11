@@ -1,0 +1,31 @@
+* Exercise 520
+
+#+begin_quote
+The =solve*= function generates all states reachable with $n$ boat trips before it looks
+at states that require $n + 1$ boat trips, even if some of those boat trips return to
+previously encountered states. Because of this systematic way of traversing the tree,
+=solve*= cannot go into an infinite loop. Why?
+
+*Terminology* This way of searching a tree or a graph is dubbed /breadth-first search/.
+#+end_quote
+
+#+begin_src racket
+  (define (solve state0)
+    (local (; [List-of PuzzleState] -> PuzzleState
+            ; generative generates the successors of los
+            (define (solve* los)
+              (cond
+                [(ormap final? los)
+                 (first (filter final? los))]
+                [else
+                 (solve* (create-next-states los))])))
+      (solve* (list state0))))
+#+end_src
+
+Because we'll stop if any of the states in a given pass is a final state.
+
+Imagine we do in fact run into a state for which one of its generated states is
+a previously visited state. As long as any of its "sibling" states produces states
+for which we'll eventually get a solution, it doesn't matter if we keep repeating
+states for a path/subtree; we'll exhaust a given level befor recurring, and therefore
+eventually find a final state. (This does assume, however, that there /is/ an end state).
