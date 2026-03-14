@@ -7,6 +7,32 @@
 (define ε 10)
 (define SCENE (empty-scene 100 100))
 
+(define MT (empty-scene 400 400))
+(define A (make-posn 200  50))
+(define B (make-posn  27 350))
+(define C (make-posn 373 350))
+
+; add-sierpinski: Image Posn Posn Posn -> Image
+; generative: adds the triangle (a, b, c) to scene0, subdivides it into three triangles
+; by taking the midpoints of its sides; stop if (a, b, c) is too small
+;
+; accumulator: the function accumulates the triangles of scene0
+(define (add-sierpinski scene0 a b c)
+  (cond
+    [(too-small? a b c) scene0]
+    [else
+     (local
+         [(define scene1 (add-triangle scene0 a b c))
+          (define mid-a-b (mid-point a b))
+          (define mid-b-c (mid-point b c))
+          (define mid-c-a (mid-point c a))
+          (define scene2
+            (add-sierpinski scene1 a mid-a-b mid-c-a))
+          (define scene3
+            (add-sierpinski scene2 b mid-b-c mid-a-b))]
+       ; —IN—
+       (add-sierpinski scene3 c mid-c-a mid-b-c))]))
+
 ; add-triangle: Image Posn Posn Posn -> Image
 ; adds the black traingle a, b, c to scene
 ;
@@ -52,3 +78,5 @@
 (define (mid-point a b)
   (make-posn (/ (+ (posn-x a) (posn-x b)) 2)
              (/ (+ (posn-y a) (posn-y b)) 2)))
+
+(add-sierpinski MT A B C)
